@@ -6,6 +6,10 @@ description: >
   Triggers: "optimize this question", "how to ask better", "help me organize",
   "I want to ask AI a question", pasting a question asking "is this good enough",
   or any discussion about question quality.
+  中文触发词: "优化这个问题", "帮我优化问题", "这个问题怎么问更好",
+  "怎么问才能得到更好的回答", "帮我组织一下问题", "我想问AI一个问题",
+  "这样问行不行", "问题质量", "帮我改一下这个问题", "优化提问",
+  "怎么提问", "这个问题问得好不好", "帮我润色一下问题".
 agent_created: true
 ---
 
@@ -38,14 +42,14 @@ Before entering any stage, classify the question through a **signal detection de
 
 | Signal | Detection Keywords / Patterns | Examples |
 |--------|------------------------------|----------|
-| **Factual lookup** | "what is X", "how to use X", "X definition", "X syntax", single-concept questions | "What is a closure in JS" |
-| **Debug / error** | Error messages, "why does this error", stack traces, "this code doesn't work" | "TypeError: Cannot read property" |
-| **Formatting / conversion** | "convert", "format", "translate", "summarize", "rewrite this", "template" | "Translate this to English" |
-| **Comparison signal** | "vs", "compared to", "which is better", "A or B", "difference between" | "React vs Vue" |
-| **Decision signal** | "should I", "is it worth", "choose between", "decide", "trade-off", "pros and cons" | "Should I switch jobs" |
-| **Analysis signal** | "analyze", "evaluate", "how is this plan", "why would X fail", "review" | "Analyze this architecture" |
-| **Exploration signal** | "what directions", "what else", "any other options", "brainstorm", "explore" | "What are my options" |
-| **Strategy signal** | "how should I approach", "long-term", "roadmap", "priority", "resource allocation" | "How should I scale my team" |
+| **Factual lookup** | "what is X", "how to use X", "X definition", "X syntax"; "X是什么", "X怎么用", "X的定义", "X语法" | "What is a closure in JS" / "闭包是什么" |
+| **Debug / error** | Error messages, "why does this error", stack traces, "this code doesn't work"; "报错了", "为什么报错", "这段代码不对" | "TypeError: Cannot read property" / "这段代码报错了" |
+| **Formatting / conversion** | "convert", "format", "translate", "summarize", "rewrite this", "template"; "转换", "格式化", "翻译", "总结", "改写", "模板" | "Translate this to English" / "翻译成英文" |
+| **Comparison signal** | "vs", "compared to", "which is better", "A or B", "difference between"; "哪个好", "A还是B", "对比", "区别", "优劣" | "React vs Vue" / "React和Vue哪个好" |
+| **Decision signal** | "should I", "is it worth", "choose between", "decide", "trade-off", "pros and cons"; "应不应该", "是否值得", "要不要", "怎么选", "利弊" | "Should I switch jobs" / "我应不应该跳槽" |
+| **Analysis signal** | "analyze", "evaluate", "how is this plan", "why would X fail", "review"; "分析", "评估", "这个方案怎么样", "为什么会失败", "评价" | "Analyze this architecture" / "分析一下这个架构" |
+| **Exploration signal** | "what directions", "what else", "any other options", "brainstorm", "explore"; "有什么方向", "还有什么", "其他选择", "头脑风暴", "探索" | "What are my options" / "还有什么方向" |
+| **Strategy signal** | "how should I approach", "long-term", "roadmap", "priority", "resource allocation"; "怎么规划", "长期", "路线图", "优先级", "资源分配" | "How should I scale my team" / "怎么规划团队扩张" |
 
 #### Step 2: Decision Tree
 
@@ -60,12 +64,13 @@ Question received
   │   │   └─ 🟡 Level 1 (Light Optimization): Clear direction, needs polish
   │   ├─ 1-2 signals + has specific constraints (role, scenario, tech stack, team size)?
   │   │   └─ 🔴 Level 2 (Medium Forcing): Has context, needs stance
-  │   └─ 2+ signals OR contains "trade-off" / "risk" / "long-term" / "strategic"?
+  │   └─ 2+ signals OR contains "trade-off"/"risk"/"long-term"/"strategic" / "权衡"/"风险"/"长期"/"战略"?
   │       └─ 🔴 Level 3 (Deep Adversarial): Complex decision, full analysis
   │
   └─ No clear signal detected
       └─ 🟡 Level 1 by default. Inform user:
          "I've classified this as light optimization. Say 'deep mode' for full analysis."
+         "已归类为轻度优化，说'深度模式'进入全面分析。"
 ```
 
 #### Step 3: Confidence & Escalation
@@ -73,11 +78,12 @@ Question received
 After classification, assign a **confidence score** (High / Medium / Low):
 
 - **High confidence**: Question clearly matches one signal category → proceed directly
-- **Medium confidence**: Question matches multiple categories or has ambiguous signals → state your classification and proceed, but note: "If this feels wrong, say 'upgrade' to go deeper."
+- **Medium confidence**: Question matches multiple categories or has ambiguous signals → state your classification and proceed, but note: "If this feels wrong, say 'upgrade' to go deeper." / "如果感觉不对，说'升级'可以深入分析。"
 - **Low confidence**: No clear signal or contradictory signals → **ask the user before proceeding**:
   > "I'm not sure how to classify this. Is this more of a [option A] or [option B]? Or just say the level you want: Level 0/1/2/3."
+  > "我不确定如何分类这个问题。你觉得更偏向 [选项 A] 还是 [选项 B]？或者直接说等级：Level 0/1/2/3。"
 
-**User override always takes priority**: If the user says "deep mode", "Level 3", "just optimize it", or any explicit level instruction, skip the decision tree and go directly to that level.
+**User override always takes priority**: If the user says "deep mode", "Level 3", "just optimize it", "深度模式", "深度分析", "Level 3", "施压一下", or any explicit level instruction, skip the decision tree and go directly to that level.
 
 ---
 
@@ -89,16 +95,18 @@ Classify with a **primary + secondary** dual-label system:
 
 | Intent | Meaning | Typical Phrasing | Forcing Strategy |
 |--------|---------|-----------------|-----------------|
-| **🧠 Explain** | Understand concepts / principles / mechanisms | "What is X", "How does X work", "Help me understand X" | Counter-intuitive anchor + Analogical counter-examples |
-| **⚖️ Decision** | Make a choice / judgment | "Should I do A or B", "Is it worth doing X", "Which one" | Regret pre-mortem + Killer question |
-| **🔨 Generate** | Generate code / content / solution | "Help me write X", "Design a Y", "Build a Z" | Minimal viable solution + Constraint challenge |
-| **🔬 Analyze** | Analyze a problem / evaluate a solution | "How is this plan", "Why would X fail", "Analyze this" | Hidden assumption exposure + Failure conditions |
-| **🧭 Explore** | Explore directions / find possibilities | "What directions are there", "What else could work", "Any other options" | Multi-path + Devil's advocate |
+| **🧠 Explain** | Understand concepts / principles / mechanisms | "What is X", "How does X work"; "X是什么", "X怎么工作", "帮我理解X" | Counter-intuitive anchor + Analogical counter-examples |
+| **⚖️ Decision** | Make a choice / judgment | "Should I do A or B", "Is it worth doing X"; "我应该选A还是B", "值不值得做X", "哪个好" | Regret pre-mortem + Killer question |
+| **🔨 Generate** | Generate code / content / solution | "Help me write X", "Design a Y"; "帮我写个X", "设计一个Y", "做一个Z" | Minimal viable solution + Constraint challenge |
+| **🔬 Analyze** | Analyze a problem / evaluate a solution | "How is this plan", "Why would X fail"; "这个方案怎么样", "为什么X会失败", "分析一下" | Hidden assumption exposure + Failure conditions |
+| **🧭 Explore** | Explore directions / find possibilities | "What directions are there", "What else could work"; "有什么方向", "还有什么办法", "还有其他选择吗" | Multi-path + Devil's advocate |
 
 **Output rules**:
-- Show the intent recognition result in one sentence: "I've identified your question as **Decision type** (making a choice). Primary forcing strategy: regret pre-mortem + killer question."
-- If a secondary intent exists, show it too: "Primary: Decision, Secondary: Analyze (you need to analyze before deciding)."
-- **User can override**: If the user says "no, this is more like analysis" → switch forcing strategy.
+- Show the intent recognition result in one sentence:
+  - EN: "I've identified your question as **Decision type** (making a choice). Primary forcing strategy: regret pre-mortem + killer question."
+  - ZH: "我识别到你的问题是 **Decision 类型**（做选择）。主要施压策略：后悔预判 + 杀手问题。"
+- If a secondary intent exists, show it too: "Primary: Decision, Secondary: Analyze" / "主意图: Decision, 次意图: Analyze"
+- **User can override**: If the user says "no, this is more like analysis" / "不对，这更像是分析" → switch forcing strategy.
 
 **Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints.**
 
@@ -142,12 +150,16 @@ Infer missing information across three dimensions:
 Show the inference in one sentence and ask the user to confirm or correct:
 
 > "I'm inferring your background is [X], you want to solve [Y], in [Z] scenario — is that right? Correct me if I'm off."
+> "我推测你的背景是 [X]，想解决 [Y]，在 [Z] 场景下——对吗？说偏了帮我纠正。"
 
 **Rules**:
 - Inference must be based on clues already in the question — no fabrication
-- If the question already has sufficient information (background, goal, and scenario are all clear), skip this step and tell the user: "Question has sufficient context, proceeding directly to optimization."
+- If the question already has sufficient information (background, goal, and scenario are all clear), skip this step and tell the user:
+  - EN: "Question has sufficient context, proceeding directly to optimization."
+  - ZH: "问题信息充分，直接进入优化。"
 - After the user confirms or corrects, proceed to Stage 1
 - Level 0 (rapid forcing) skips this step; Level 1 may skip it unless information is clearly insufficient
+- **Language matching**: All user-facing messages in this flow must match the user's language (Chinese in → Chinese out, English in → English out)
 
 ---
 
