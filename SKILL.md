@@ -32,17 +32,52 @@ Gate determines the path, intent recognition selects the forcing strategy, and c
 
 ### Gate: Scene Filter (Executes First)
 
-Before entering any stage, classify the question type:
+Before entering any stage, classify the question through a **signal detection decision tree**. Execute steps in order; stop at the first definitive match.
 
-| Type | Characteristics | Action |
-|------|----------------|--------|
-| **🟢 Quick Execution** | Lookup, simple Q&A, code debug, formatting, translation, summarization | **Answer directly, skip SharpAsk entirely** |
-| **🟡 Light Optimization** | Clear direction but vague wording, missing context, one-shot optimization | **Level 1: Light Optimization** |
-| **🔴 Deep Decision** | Decision-making, complex analysis, strategic thinking, trade-offs, challenging assumptions | **Level 2 or Level 3** |
+#### Step 1: Signal Detection — Scan for these signals in the question
 
-**Rule of thumb**: If a search engine would give roughly the same answer → 🟢 Quick Execution, answer directly.
+| Signal | Detection Keywords / Patterns | Examples |
+|--------|------------------------------|----------|
+| **Factual lookup** | "what is X", "how to use X", "X definition", "X syntax", single-concept questions | "What is a closure in JS" |
+| **Debug / error** | Error messages, "why does this error", stack traces, "this code doesn't work" | "TypeError: Cannot read property" |
+| **Formatting / conversion** | "convert", "format", "translate", "summarize", "rewrite this", "template" | "Translate this to English" |
+| **Comparison signal** | "vs", "compared to", "which is better", "A or B", "difference between" | "React vs Vue" |
+| **Decision signal** | "should I", "is it worth", "choose between", "decide", "trade-off", "pros and cons" | "Should I switch jobs" |
+| **Analysis signal** | "analyze", "evaluate", "how is this plan", "why would X fail", "review" | "Analyze this architecture" |
+| **Exploration signal** | "what directions", "what else", "any other options", "brainstorm", "explore" | "What are my options" |
+| **Strategy signal** | "how should I approach", "long-term", "roadmap", "priority", "resource allocation" | "How should I scale my team" |
 
-**Ambiguity handling**: If uncertain, default to 🟡 Light Optimization and inform the user: "I've classified this as light optimization. Say 'deep mode' if you want full analysis."
+#### Step 2: Decision Tree
+
+```
+Question received
+  │
+  ├─ Has Factual lookup OR Debug/Formatting signal?
+  │   └─ YES → 🟢 Quick Execution: Answer directly. Skip SharpAsk entirely.
+  │
+  ├─ Has Comparison/Decision/Analysis/Exploration/Strategy signal?
+  │   ├─ Only 1 signal, no specific constraints (who/what/where/when)?
+  │   │   └─ 🟡 Level 1 (Light Optimization): Clear direction, needs polish
+  │   ├─ 1-2 signals + has specific constraints (role, scenario, tech stack, team size)?
+  │   │   └─ 🔴 Level 2 (Medium Forcing): Has context, needs stance
+  │   └─ 2+ signals OR contains "trade-off" / "risk" / "long-term" / "strategic"?
+  │       └─ 🔴 Level 3 (Deep Adversarial): Complex decision, full analysis
+  │
+  └─ No clear signal detected
+      └─ 🟡 Level 1 by default. Inform user:
+         "I've classified this as light optimization. Say 'deep mode' for full analysis."
+```
+
+#### Step 3: Confidence & Escalation
+
+After classification, assign a **confidence score** (High / Medium / Low):
+
+- **High confidence**: Question clearly matches one signal category → proceed directly
+- **Medium confidence**: Question matches multiple categories or has ambiguous signals → state your classification and proceed, but note: "If this feels wrong, say 'upgrade' to go deeper."
+- **Low confidence**: No clear signal or contradictory signals → **ask the user before proceeding**:
+  > "I'm not sure how to classify this. Is this more of a [option A] or [option B]? Or just say the level you want: Level 0/1/2/3."
+
+**User override always takes priority**: If the user says "deep mode", "Level 3", "just optimize it", or any explicit level instruction, skip the decision tree and go directly to that level.
 
 ---
 
@@ -65,13 +100,34 @@ Classify with a **primary + secondary** dual-label system:
 - If a secondary intent exists, show it too: "Primary: Decision, Secondary: Analyze (you need to analyze before deciding)."
 - **User can override**: If the user says "no, this is more like analysis" → switch forcing strategy.
 
-**Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints.** E.g., Decision + Analyze = regret pre-mortem + killer question + hidden assumption exposure.
+**Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints.**
+
+#### Mixed Intent Matrix (Primary × Secondary)
+
+When two intents coexist, use this matrix to determine the combined forcing strategy:
+
+| Primary → Secondary ↓ | 🧠 Explain | ⚖️ Decision | 🔨 Generate | 🔬 Analyze | 🧭 Explore |
+|----------------------|-----------|-------------|-------------|-----------|-----------|
+| **🧠 Explain** | — | Regret pre-mortem + Counter-intuitive anchor | Minimal viable solution + "Why this conceptual foundation?" | Hidden assumption exposure + Counter-intuitive anchor | Multi-path + "Explain each path's underlying mechanism" |
+| **⚖️ Decision** | Counter-intuitive anchor + "Which choice does this imply?" | — | Minimal viable solution + Regret pre-mortem | Hidden assumption exposure + Regret pre-mortem | Multi-path + Regret pre-mortem (evaluate each path's regret) |
+| **🔨 Generate** | Counter-intuitive anchor + Constraint challenge | Regret pre-mortem + Constraint challenge | — | Hidden assumption exposure + Constraint challenge | Multi-path + Minimal viable solution (simplify each path) |
+| **🔬 Analyze** | Counter-intuitive anchor + Hidden assumption exposure | Regret pre-mortem + Hidden assumption exposure | Minimal viable solution + Hidden assumption exposure | — | Multi-path + Hidden assumption exposure |
+| **🧭 Explore** | Counter-intuitive anchor + Devil's advocate | Regret pre-mortem + Devil's advocate | Minimal viable solution + Devil's advocate | Hidden assumption exposure + Devil's advocate | — |
+
+**Tertiary intent handling**: If a third intent is clearly present, add only its **most distinctive constraint** (don't stack all three). Inform the user: "I'm also detecting [tertiary intent] — adding [specific constraint] as a supplementary layer."
+
+**Intent conflict detection**: When primary and secondary strategies directly contradict (e.g., Explain wants to expand understanding while Generate wants to narrow to one solution), notify the user:
+> "Your question has both 'understand' and 'build' dimensions. I recommend processing them in sequence: first explore the concept (Explain), then converge on a solution (Generate). Proceed this way?"
+
+If the user declines, prioritize the primary intent and note the trade-off.
 
 ---
 
 ### Context Completion (After Intent Recognition, Before Stage 1)
 
 **Goal: Fill in critical information the user didn't provide, preventing mediocre output based on incomplete input.**
+
+> 📖 **Reference**: For structuring the output format and audience targeting of context-inferred questions, see `references/prompt-patterns.md` → **CO-STAR Framework** (Context/Objective/Style/Tone/Audience/Response). Use the Audience and Response elements to sharpen the context completion output.
 
 Infer missing information across three dimensions:
 
@@ -99,6 +155,8 @@ Show the inference in one sentence and ask the user to confirm or correct:
 
 **Goal: Prevent garbage input.**
 
+> 📖 **Reference**: When diagnosing question flaws, cross-check against `references/prompt-patterns.md` → **Common Anti-Patterns** (vague request, too broad, hidden assumption, contradictory constraints, missing role, no format specified, over-constraining, assumed consensus). These 8 anti-patterns are the standard checklist for what's wrong with the original question.
+
 Upon receiving the question (combined with intent recognition and context completion results), complete three things internally:
 
 | Action | What to Check |
@@ -125,6 +183,8 @@ Upon receiving the question (combined with intent recognition and context comple
 
 #### Deep Forcing Layer (Level 2+, Auto-selected by Intent Recognition)
 
+> 📖 **Reference**: For role-setting and persona construction in forcing constraints, see `references/prompt-patterns.md` → **CRISPE Framework** (Capacity/Request/Insight/Style/Personality/Experiment). Use the Capacity element to craft more precise stance constraints.
+
 Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints:
 
 | Intent | Main Forcing Strategy | Injection Method |
@@ -140,6 +200,8 @@ Primary intent determines the main forcing strategy; secondary intent adds suppl
 **Killer Question (Universal for all Level 2+)**: Regardless of intent, can always inject — "Ask one question where, if the answer is X, your entire plan collapses."
 
 #### Consensus Detection (Auto-labeled)
+
+> 📖 **Reference**: For consensus detection criteria and consensus-breaking techniques, see `references/prompt-patterns.md` → **Identifying Consensus Answers** and **Techniques to Break Consensus**. Use the 5 consensus traits as the diagnostic checklist; use the breaking techniques as the adjustment toolkit when consensus is 🔴.
 
 Evaluate the consensus level of the forcing result:
 
@@ -215,6 +277,8 @@ Based on three rounds of review, output a credibility score for each path:
 
 **Goal: From "multiple possibilities" → "executable conclusion."**
 
+> 📖 **Reference**: Before finalizing the output, verify it meets the quality bar in `references/prompt-patterns.md` → **5 Signals of a High-Quality Question** (clear success criteria, constraints present, context provided, output format specified, room for exploration). Each signal the optimized question satisfies = one quality point.
+
 Based on Stage 4's adversarial review results, select the optimal path. Must include:
 
 | Output Item | Description |
@@ -228,6 +292,23 @@ Based on Stage 4's adversarial review results, select the optimal path. Must inc
 ---
 
 ## Output Formats
+
+### Adaptive Output Rules
+
+Output templates below are the **default** format. Apply these adaptive rules:
+
+**Summary mode (Level 3 default)**: Level 3 output is long. By default, render a **compact version**:
+- Show only: Intent Recognition → Cognitive Forcing Version → Multi-Path table → Final Recommendation (4 sections)
+- Collapse Adversarial Report and Dimensions into a one-line summary
+- User can say "expand" or "full report" to see the complete version
+
+**Progressive disclosure (all levels)**: If the user says "stop" or "just give me the question" at any stage, skip remaining stages and output whatever is ready.
+
+**Language adaptation**: Output template placeholders (e.g., `[Dimension name]`, `[Why it matters]`) should follow the user's language. If the user writes in Chinese, use Chinese placeholders; if in English, use English.
+
+**Focus mode**: If the user specifies a focus (e.g., "only show me the adversarial part" or "skip the diagnosis"), output only the requested sections.
+
+---
 
 ### Level 0 Output (Rapid Forcing)
 
