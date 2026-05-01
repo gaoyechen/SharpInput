@@ -8,6 +8,8 @@
 
 ---
 
+<!-- LANG:ZH-START -->
+
 # 🔥 SharpAsk — AI 提问优化器
 
 大多数人的提问方式，注定了 AI 只能给出中庸答案。SharpAsk 通过 **场景判断 → 意图识别 → 上下文补全 → 问题重构 → 认知施压 → 多路径生成 → 自我对抗 → 收敛输出**，强制 AI 产生立场、权衡和洞察，而非罗列教科书常识。
@@ -136,8 +138,9 @@ git clone https://github.com/gaoyechen/SharpAsk.git
 
 ```
 SharpAsk/
-├── SKILL.md                         # 主文件：五阶段流程 + 输出模板
+├── SKILL.md                         # 主文件：五阶段流程 + 边界规则
 ├── references/
+│   ├── output-templates.md          # 输出模板（Level 0~3）+ 自适应规则
 │   └── prompt-patterns.md           # 提问框架参考（CRISPE/CO-STAR）
 ├── README.md                        # 本文件
 └── LICENSE                          # MIT License
@@ -151,7 +154,11 @@ MIT — 随便用，随便改，随便分享。
 
 > **问得锐，答得深。** — SharpAsk
 
+<!-- LANG:ZH-END -->
+
 ---
+
+<!-- LANG:EN-START -->
 
 # 🔥 SharpAsk — AI Question Optimizer
 
@@ -281,8 +288,9 @@ User question → 🚦 Gate → 🏷️ Intent Recognition → 🔮 Context Comp
 
 ```
 SharpAsk/
-├── SKILL.md                         # Core: 5-stage flow + output templates
+├── SKILL.md                         # Core: 5-stage flow + boundary rules
 ├── references/
+│   ├── output-templates.md          # Output templates (Level 0~3) + adaptive rules
 │   └── prompt-patterns.md           # Prompting frameworks (CRISPE / CO-STAR)
 ├── README.md                        # This file
 └── LICENSE                          # MIT License
@@ -295,3 +303,5 @@ MIT — use it, modify it, share it.
 ---
 
 > **Ask sharp, answer deep.** — SharpAsk
+
+<!-- LANG:EN-END -->
