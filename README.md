@@ -1,194 +1,196 @@
-# 🔥 SharpAsk — AI 提问优化器
+# 🔥 SharpAsk — AI Question Optimizer
 
-> 智能提问优化框架，让你的 AI 回答从"正确废话"变成"有洞察力的观点"。
+> A cognitive forcing framework that transforms your AI answers from "correct platitudes" into "opinionated insights."
 
-大多数人的提问方式，注定了 AI 只能给出中庸答案。SharpAsk 通过 **场景判断 → 意图识别 → 上下文补全 → 问题重构 → 认知施压 → 多路径生成 → 自我对抗 → 收敛输出**，强制 AI 产生立场、权衡和洞察，而非罗列教科书常识。
+**English** | [中文](./README_CN.md)
 
----
-
-## ⚡ 核心理念
-
-> **如果所有人都会给出同样的答案，那它不值得作为核心输出。**
-
-SharpAsk 不是帮你"把问题写得更漂亮"，而是：
-
-- 🎯 **逼 AI 选边站** — 不能中立，必须有立场
-- ⚔️ **逼 AI 自我对抗** — 找反例、找失效条件、打掉幻觉
-- 🔭 **逼 AI 挖掘盲区** — 列出你自己都没想到的维度
-- 🚫 **逼 AI 放弃"全都要"** — 必须明确放弃什么来换取什么
-- 🚦 **智能分流** — 简单问题直接答，不走过度流程
+Most people ask questions in ways that guarantee mediocre answers. SharpAsk applies **scene gating → intent recognition → context completion → problem reframing → cognitive forcing → divergent thinking → adversarial loop → convergent synthesis** to force AI into producing answers with genuine positions, real trade-offs, and actionable insight — not textbook bullet points.
 
 ---
 
-## 🚦 四级施压系统
+## ⚡ Core Philosophy
 
-SharpAsk 不会对所有问题一视同仁。它会先判断问题类型，再选择合适的施压深度：
+> **If everyone would give the same answer, it's not worth producing.**
 
-| 等级 | 名称 | 执行阶段 | 适用场景 |
-|------|------|---------|---------|
-| **Level 0** | 极速施压 | 仅认知施压 → 输出施压版问题 | 只想要一个好问题，不需要分析 |
-| **Level 1** | 轻度优化 | 问题重构 → 输出 | 问题质量不错，只需微调表述 |
-| **Level 2** | 中度施压 | 问题重构 → 认知施压 + 深度施压层 | 需要有立场，但不需要完整对抗 |
-| **Level 3** | 深度对抗 | 完整五阶段 | 复杂决策、需要全面分析 |
+SharpAsk doesn't help you "word your question better." It:
 
-**自动分流**：查资料、Debug、翻译等简单问题直接回答，不走 SharpAsk 流程，零摩擦。
-
-**随时切换**：说"深度模式"升级到 Level 3，说"简单优化"降到 Level 1，说"施压一下"用 Level 0。
+- 🎯 **Forces AI to pick a side** — No neutrality allowed
+- ⚔️ **Forces AI to self-adversarize** — Find counter-examples, failure conditions, kill its own hallucinations
+- 🔭 **Forces AI to surface blind spots** — Dimensions you yourself hadn't considered
+- 🚫 **Forces AI to sacrifice** — Can't "have it all"; must declare what it gives up
+- 🚦 **Smart triage** — Simple questions get direct answers, no over-engineering
 
 ---
 
-## 🏷️ 意图识别
+## 🚦 Four-Level Forcing System
 
-SharpAsk 会自动识别问题的核心意图，决定使用哪套施压策略：
+SharpAsk doesn't treat all questions equally. It classifies the question first, then selects the appropriate forcing depth:
 
-| 意图 | 含义 | 施压策略 |
-|------|------|---------|
-| 🧠 **Explain** | 理解概念/原理 | 反直觉锚点 + 类比反例 |
-| ⚖️ **Decision** | 做出选择/判断 | 后悔预判 + 杀手问题 |
-| 🔨 **Generate** | 生成代码/内容/方案 | 最简方案 + 约束挑战 |
-| 🔬 **Analyze** | 分析问题/评估方案 | 隐含假设暴露 + 失效条件 |
-| 🧭 **Explore** | 探索方向/寻找可能 | 多路径 + 反面辩护 |
+| Level | Name | Stages Executed | When to Use |
+|-------|------|----------------|-------------|
+| **Level 0** | Rapid Forcing | Cognitive forcing only → output forced question | Just want a good question, no analysis needed |
+| **Level 1** | Light Optimization | Problem reframing → output | Question is decent, just needs polish |
+| **Level 2** | Medium Forcing | Reframing → cognitive forcing + deep forcing layer | Need a stance, but no full adversarial loop |
+| **Level 3** | Deep Adversarial | Full five stages | Complex decisions, need comprehensive analysis |
 
-支持**主意图 + 次意图**双标签。用户可覆盖识别结果。
+**Auto-triage**: Lookup, debug, translation, and other simple questions get direct answers — zero friction.
+
+**Switch anytime**: Say "deep mode" to jump to Level 3, "simple optimization" for Level 1, or "just force it" for Level 0.
 
 ---
 
-## 🔮 上下文补全
+## 🏷️ Intent Recognition
 
-用户问题常常缺少关键信息（背景、目标、场景），SharpAsk 会：
+SharpAsk automatically identifies the core intent of your question to select the right forcing strategy:
 
-1. **自动推断** — 从问题中提取隐含的背景/目标/场景
-2. **展示确认** — "我推测你是 [X]，想解决 [Y]，在 [Z] 场景下，对吗？"
-3. **用户修正** — 只需说"对"或纠正一个点，比从头回答三个问题快得多
+| Intent | Meaning | Forcing Strategy |
+|--------|---------|-----------------|
+| 🧠 **Explain** | Understand concepts / principles | Counter-intuitive anchor + analogical counter-examples |
+| ⚖️ **Decision** | Make a choice / judgment | Regret pre-mortem + killer question |
+| 🔨 **Generate** | Generate code / content / solution | Minimal viable solution + constraint challenge |
+| 🔬 **Analyze** | Analyze a problem / evaluate a solution | Hidden assumption exposure + failure conditions |
+| 🧭 **Explore** | Explore directions / find possibilities | Multi-path + devil's advocate |
 
-信息充足时自动跳过，零摩擦。
+Supports **primary + secondary** dual-label intent. Users can override the recognition result.
+
+---
+
+## 🔮 Context Completion
+
+User questions often lack critical information (background, goals, scenario). SharpAsk:
+
+1. **Auto-infers** — Extracts implicit background / goals / scenario from the question
+2. **Confirms** — "I'm inferring your background is [X], you want to solve [Y], in [Z] scenario — correct?"
+3. **User corrects** — Just say "yes" or fix one point, much faster than answering three separate questions
+
+Automatically skipped when information is sufficient — zero friction.
 
 ---
 
 ## 📖 Before vs After
 
-### 示例 1：学习效率（Level 2 — 中度施压）
+### Example 1: Learning Efficiency (Level 2 — Medium Forcing)
 
-**原问题：**
-> 如何提高学习效率？
+**Original question:**
+> How to improve learning efficiency?
 
-**普通 AI 回答：**
-> 1. 制定合理的学习计划
-> 2. 保持充足的睡眠
-> 3. 采用番茄工作法
-> 4. 做好笔记和复习
-> 5. 保持良好的学习环境
+**Typical AI answer:**
+> 1. Make a reasonable study plan
+> 2. Get enough sleep
+> 3. Use the Pomodoro technique
+> 4. Take good notes and review regularly
+> 5. Maintain a good study environment
 >
-> （👆 搜索引擎第一页的内容，任何 AI 都会给出类似答案）
+> (👆 Content from the first page of any search engine — any AI would give a similar answer)
 
 ---
 
-**SharpAsk 输出：**
+**SharpAsk output:**
 
-> 🎯 **认知施压版问题：**
+> 🎯 **Cognitive Forcing Version:**
 >
-> 你是一位认知科学研究员，同时也是"效率至上主义"的批评者。我每天可用学习时间 3 小时，目标是在 6 个月内通过软考架构师考试。
+> You are a cognitive science researcher and a critic of "efficiency-ism." I have 3 hours of study time per day, and my goal is to pass the System Architect certification exam in 6 months.
 >
-> 请明确选择一个立场：**深度学习（慢但扎实）还是应试冲刺（快但浅薄）？** 不允许说"两者结合"。
+> Pick a position: **deep learning (slow but solid) or exam cramming (fast but shallow)?** "Both" is not allowed.
 >
-> 必须放弃其中一个方向的核心优势来换取另一个方向的收益，明确说明你放弃了什么。
+> You must sacrifice the core advantage of one approach to gain the benefit of the other. State explicitly what you're giving up.
 >
-> 给出一个与"主流学习方法论"相反的观点，并为其辩护。
+> Present a view that contradicts mainstream learning methodology and defend it.
 
-> 🔭 **你可能没想到的维度：**
-> 1. **"学习效率"本身是个伪命题** — 如果考试考的是知识广度而非深度，"效率"的定义完全不同
-> 2. **遗忘曲线的反面** — 适度遗忘反而强化记忆，"复习一切"可能是最差策略
+> 🔭 **Dimensions you may have overlooked:**
+> 1. **"Learning efficiency" itself may be a false premise** — If the exam tests breadth over depth, "efficiency" means something completely different
+> 2. **The upside of forgetting** — Moderate forgetting actually strengthens memory; "review everything" might be the worst strategy
 
 ---
 
-### 示例 2：技术选型（Level 3 — 深度对抗）
+### Example 2: Tech Stack Decision (Level 3 — Deep Adversarial)
 
-**原问题：**
-> React 和 Vue 哪个好？
+**Original question:**
+> React vs Vue — which is better?
 
-**普通 AI 回答：**
-> React 的优势是生态丰富、社区大、JSX 灵活……Vue 的优势是学习曲线平缓、模板语法直观……具体选择取决于项目需求。
+**Typical AI answer:**
+> React's strengths are a rich ecosystem, large community, flexible JSX… Vue's strengths are a gentle learning curve, intuitive template syntax… The choice depends on your project requirements.
 >
-> （👆 经典的"两边都说好话，最后告诉你"看情况""）
+> (👆 The classic "both are good, it depends" non-answer)
 
 ---
 
-**SharpAsk 输出：**
+**SharpAsk output:**
 
-> 🎯 **认知施压版问题：**
+> 🎯 **Cognitive Forcing Version:**
 >
-> 你是一个有 5 年经验的前端技术负责人，团队 4 人，其中 2 人只熟悉 jQuery。项目是一个需要维护 3 年以上的 toB 后台管理系统。
+> You are a frontend tech lead with 5 years of experience. Your team of 4 includes 2 who only know jQuery. The project is a toB admin dashboard that needs to be maintained for 3+ years.
 >
-> 请**必须选择一个框架**，不允许说"各有优劣"或"取决于场景"。
+> You **must choose one framework**. "Both have pros and cons" or "it depends" are not allowed.
 >
-> 为你的选择给出一个**反直觉的理由**（不要说"生态好"或"学习曲线平"这种共识性观点）。
+> Give a **counter-intuitive reason** for your choice (not "good ecosystem" or "easy to learn" — those are consensus opinions).
 >
-> 明确说出你**放弃的那个框架的最大优势**，以及你为什么认为这个优势在当前场景下不重要。
+> State the **biggest strength of the framework you rejected** and explain why you think that strength doesn't matter in this scenario.
 
-> ⚔️ **自我对抗：**
-> - 最脆弱假设：假设"学习成本低"等于"长期维护成本低"
-> - 反例：jQuery 团队迁移 Vue 短期高效，但 Vue 3 的 Composition API 重构后学习曲线陡升
-> - 失效条件：如果项目后期需要大量自定义渲染逻辑，React 的 JSX 灵活性优势会反转
+> ⚔️ **Adversarial check:**
+> - Weakest assumption: Assuming "low learning cost" equals "low long-term maintenance cost"
+> - Counter-example: jQuery teams migrating to Vue see short-term gains, but Vue 3's Composition API rewrite steepened the learning curve dramatically
+> - Failure condition: If the project later requires extensive custom rendering logic, React's JSX flexibility advantage reverses
 
 ---
 
-### 示例 3：职业决策（Level 3 — 深度对抗）
+### Example 3: Career Decision (Level 3 — Deep Adversarial)
 
-**原问题：**
-> 我应该跳槽吗？
+**Original question:**
+> Should I change jobs?
 
-**普通 AI 回答：**
-> 跳槽前需要考虑：薪资涨幅、职业发展空间、团队氛围、公司前景……建议综合评估后再做决定。
+**Typical AI answer:**
+> Before changing jobs, consider: salary increase, career growth, team culture, company prospects… We recommend a comprehensive evaluation before deciding.
 >
-> （👆 等于什么都没说）
+> (👆 That's saying absolutely nothing)
 
 ---
 
-**SharpAsk 输出：**
+**SharpAsk output:**
 
-> 🎯 **认知施压版问题：**
+> 🎯 **Cognitive Forcing Version:**
 >
-> 我在一家中型 toG 公司做了 3 年产品经理，薪资低于市场 15%，但积累了行业经验。现在有一家大厂 offer，薪资涨 30%，但方向完全不同。
+> I've been a product manager at a mid-size toG company for 3 years, earning 15% below market, but I've accumulated industry expertise. Now I have a big-tech offer with a 30% salary bump, but in a completely different domain.
 >
-> **必须明确回答：跳还是不跳。** 不允许"需要综合考虑"。
+> **You must answer clearly: switch or stay.** "It depends on your circumstances" is not allowed.
 >
-> 为你的建议给出一个**大多数人不会考虑的风险**。
+> Give me a risk that **most people wouldn't think of**.
 >
-> 告诉我：如果我按你的建议做了，**3 年后最可能后悔的是什么？**
+> Tell me: if I follow your advice, **what will I most likely regret 3 years from now?**
 
-> 🔭 **你可能没想到的维度：**
-> 1. **行业经验的折旧率** — toG 产品经验在大厂的市场价值可能远低于你以为的水平
-> 2. **3 年后的你不是现在的你** — 现在的"行业经验"可能变成"路径依赖"，限制你未来的选择
+> 🔭 **Dimensions you may have overlooked:**
+> 1. **Depreciation rate of industry expertise** — toG product experience may have far less market value at big tech than you think
+> 2. **Future you ≠ current you** — Your "industry expertise" today could become "path dependency" tomorrow, limiting your future choices
 
 ---
 
-## ✅ 适用场景
+## ✅ When to Use
 
-| 适合 | 不适合 |
-|------|--------|
-| 🧠 **决策类问题** — 技术选型、职业选择、产品方向 | 📚 **查资料** — "Python 的 list 怎么用" |
-| 🔬 **复杂分析** — 竞品分析、架构设计、方案评估 | ❓ **简单问答** — "北京今天天气" |
-| 🎯 **战略思考** — 商业模式、增长策略、优先级排序 | 🔧 **代码 Debug** — "这段代码报错了" |
-| 🤔 **深度学习** — 理解概念本质、对比方法论 | 📝 **格式化任务** — "帮我写个模板" |
-| 💡 **创意探索** — 找灵感、开拓思路、挑战假设 | 📖 **翻译/摘要** — 纯信息转换类 |
+| Great Fit | Poor Fit |
+|-----------|----------|
+| 🧠 **Decisions** — Tech stack, career, product direction | 📚 **Lookup** — "How does Python's list work" |
+| 🔬 **Complex analysis** — Competitor analysis, architecture design, plan evaluation | ❓ **Simple Q&A** — "What's the weather in Beijing" |
+| 🎯 **Strategy** — Business models, growth strategy, prioritization | 🔧 **Debug** — "This code throws an error" |
+| 🤔 **Deep learning** — Understanding concepts, comparing methodologies | 📝 **Formatting** — "Help me write a template" |
+| 💡 **Creative exploration** — Brainstorming, challenging assumptions | 📖 **Translation/summary** — Pure information conversion |
 
-**一句话判断标准：** 如果这个问题你扔给搜索引擎也能得到差不多的答案，那就不需要 SharpAsk。
+**One-line rule:** If a search engine would give roughly the same answer, you don't need SharpAsk.
 
 ---
 
-## 🚀 安装
+## 🚀 Installation
 
-### 方式 1：Git 克隆
+### Option 1: Git Clone
 
 ```bash
 git clone https://github.com/gaoyechen/SharpAsk.git
 ```
 
-将 `SKILL.md` 和 `references/` 目录放入你的 AI Agent 的 skills 目录中。
+Place `SKILL.md` and `references/` into your AI Agent's skills directory.
 
-### 方式 2：手动安装
+### Option 2: Manual Install
 
-将 `SKILL.md` 和 `references/prompt-patterns.md` 复制到你的 Agent 的 skill 目录：
+Copy `SKILL.md` and `references/prompt-patterns.md` to your agent's skill directory:
 
 ```
 your-agent-skills/SharpAsk/
@@ -199,62 +201,63 @@ your-agent-skills/SharpAsk/
 
 ---
 
-## 📋 使用方式
+## 📋 Usage
 
-安装后，在对话中直接使用以下触发词：
+After installation, use these trigger phrases in conversation:
 
-- `帮我优化这个问题：[你的问题]`
-- `怎么问才能得到更好的回答`
-- `我想问 AI 一个问题，帮我组织一下`
-- `这样问行不行：[你的问题]`
+- `Optimize this question: [your question]`
+- `How to ask this better`
+- `I want to ask AI a question, help me organize it`
+- `Is this question good enough: [your question]`
 
-### 施压等级控制
+### Forcing Level Control
 
-- **默认**：AI 自动判断问题类型，选择合适的等级
-- `深度模式` — 强制 Level 3，完整五阶段
-- `简单优化` — Level 1，只做问题重构
+- **Default**: AI auto-classifies the question and selects the appropriate level
+- `Deep mode` — Force Level 3, full five stages
+- `Simple optimization` — Level 1, problem reframing only
 
-### 输出内容
+### Output Content
 
-| Level | 输出 |
-|-------|------|
-| **Level 1** | 诊断 + 优化后问题 + 改进点 |
-| **Level 2** | 诊断 + 认知施压版问题 + 隐藏维度 |
-| **Level 3** | 诊断 + 认知施压版问题 + 多路径对比 + 自我对抗 + 隐藏维度 + 最终推荐 |
+| Level | Output |
+|-------|--------|
+| **Level 1** | Diagnosis + optimized question + improvements |
+| **Level 2** | Diagnosis + cognitive forcing version + hidden dimensions |
+| **Level 3** | Diagnosis + cognitive forcing version + multi-path comparison + adversarial report + hidden dimensions + final recommendation |
 
 ---
 
-## 🧠 流程图
+## 🧠 Flow Diagram
 
 ```
-用户问题
+User question
     ↓
-🚦 Gate 判断：快速执行类？──→ 是 ──→ 直接回答，结束
-    │ 否
+🚦 Gate: Quick execution? ──→ Yes ──→ Answer directly, done
+    │ No
     ↓
-🏷️ 意图识别（Explain/Decision/Generate/Analyze/Explore）
+🏷️ Intent Recognition (Explain / Decision / Generate / Analyze / Explore)
     ↓
-🔮 上下文补全：推断缺失的背景/目标/场景 → 展示确认
+🔮 Context Completion: Infer missing background / goals / scenario → Confirm
     ↓
-施压等级选择
-    ├── Level 0: 仅认知施压 ──→ 输出施压版问题
-    ├── Level 1: 问题重构 ──→ 输出优化问题
-    ├── Level 2: 问题重构 → 认知施压（含意图适配的深度施压层）
-    └── Level 3: 完整五阶段 → 多路径 → 自我对抗 → 收敛输出
+Forcing Level Selection
+    ├── Level 0: Cognitive forcing only → output forced question
+    ├── Level 1: Problem reframing → output optimized question
+    ├── Level 2: Reframing → cognitive forcing (with intent-adapted deep layer)
+    └── Level 3: Full five stages → multi-path → adversarial → convergent output
                                                               ↓
-                                                        最终推荐 + 可信度评分
+                                                        Final recommendation + credibility score
 ```
 
 ---
 
-## 📁 文件结构
+## 📁 File Structure
 
 ```
 SharpAsk/
-├── SKILL.md                         # 主文件：Gate + 意图识别 + 上下文补全 + 五阶段 + 输出模板
+├── SKILL.md                         # Core: Gate + intent + context + 5 stages + output templates
 ├── references/
-│   └── prompt-patterns.md           # 提问框架参考（CRISPE/CO-STAR）
-├── README.md                        # 本文件
+│   └── prompt-patterns.md           # Prompting frameworks (CRISPE / CO-STAR)
+├── README.md                        # English README (this file)
+├── README_CN.md                     # 中文 README
 └── LICENSE                          # MIT License
 ```
 
@@ -262,8 +265,8 @@ SharpAsk/
 
 ## 📄 License
 
-MIT — 随便用，随便改，随便分享。
+MIT — use it, modify it, share it.
 
 ---
 
-> **问得锐，答得深。** — SharpAsk
+> **Ask sharp, answer deep.** — SharpAsk

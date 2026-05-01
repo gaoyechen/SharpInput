@@ -2,69 +2,69 @@
 
 ## CRISPE Framework
 
-| 要素 | 含义 | 示例 |
-|------|------|------|
-| **C**apacity (角色) | AI 扮演什么角色 | "你是一位资深前端架构师" |
-| **R**equest (请求) | 具体要做什么 | "帮我设计一个组件方案" |
-| **I**nsight (背景) | 相关上下文信息 | "项目用 React + TypeScript，团队3人" |
-| **S**tyle (风格) | 期望的回答风格 | "用工程化思维，给出可落地的方案" |
-| **P**ersonality (个性) | 回答的调性 | "直接、不废话、有主见" |
-| **E**xperiment (实验) | 要求多版本对比 | "给出2-3个方案并对比优劣" |
+| Element | Meaning | Example |
+|---------|---------|---------|
+| **C**apacity (Role) | What role does the AI play | "You are a senior frontend architect" |
+| **R**equest (Task) | What specifically to do | "Help me design a component architecture" |
+| **I**nsight (Context) | Relevant background info | "The project uses React + TypeScript, team of 3" |
+| **S**tyle (Format) | Expected answer style | "Think like an engineer, give actionable plans" |
+| **P**ersonality (Tone) | Answer personality | "Direct, no fluff, opinionated" |
+| **E**xperiment (Variation) | Request multiple versions | "Give 2-3 options and compare pros/cons" |
 
 ---
 
 ## CO-STAR Framework
 
-| 要素 | 含义 | 适用场景 |
-|------|------|---------|
-| **C**ontext (上下文) | 提供背景信息 | 所有问题都适用 |
-| **O**bjective (目标) | 明确要AI做什么 | 模糊请求需要锚定 |
-| **S**tyle (风格) | 期望的写作风格 | 内容创作类问题 |
-| **T**one (语气) | 正式/轻松/严肃等 | 面向不同受众时 |
-| **A**udience (受众) | 回答面向谁 | 需要定制深度时 |
-| **R**esponse (响应格式) | 列表/表格/代码/文章等 | 需要结构化输出时 |
+| Element | Meaning | When to Use |
+|---------|---------|------------|
+| **C**ontext | Provide background information | All questions benefit from this |
+| **O**bjective | Clarify what the AI should do | Vague requests need anchoring |
+| **S**tyle | Desired writing style | Content creation tasks |
+| **T**one | Formal / casual / serious, etc. | When targeting different audiences |
+| **A**udience | Who the answer is for | When depth needs customization |
+| **R**esponse | List / table / code / essay, etc. | When structured output is needed |
 
 ---
 
-## 常见反模式
+## Common Anti-Patterns
 
-| 反模式 | 问题 | 修复方向 |
-|--------|------|---------|
-| **模糊请求** | "帮我写个程序" | 锚定语言、功能、输入输出 |
-| **大而全** | "教我学编程" | 拆分为具体子主题，逐个击破 |
-| **隐含假设** | "如何提高转化率" | 先暴露前提：当前转化率多少？瓶颈在哪？ |
-| **矛盾约束** | "简洁但全面" | 明确优先级，选择一个方向 |
-| **角色缺失** | "这个方案怎么样" | 从谁的视角？技术？产品？老板？ |
-| **格式未定** | "告诉我关于X的信息" | 要表格？要点列表？深度分析？快速摘要？ |
-| **过度引导** | "用XX框架实现YY功能" | 可能限制了更优方案的出现 |
-| **假设共识** | "按最佳实践来做" | 谁的最佳实践？哪个社区？哪个版本？ |
-
----
-
-## 共识性回答的识别特征
-
-当一个提问容易产生共识性回答时，通常有以下特征：
-
-1. **答案可被搜索引擎直接回答** — 如果 Google 第一条就能找到，AI 也会给出类似答案
-2. **问题缺乏约束条件** — 约束越少，答案越趋向"安全但平庸"的中间值
-3. **没有要求挑战前提** — 默认前提不被质疑，答案就在既定框架内打转
-4. **缺少视角切换** — 只从一个角度提问，只得到一个角度的"标准答案"
-5. **时间尺度单一** — 只问"现在怎么办"，不问"5年后怎么看"或"什么条件下会失效"
-
-### 打破共识的提问技巧
-
-- 要求 AI 找出自身回答中**最脆弱的假设**
-- 要求 AI **为相反立场做最强辩护**
-- 引入**具体场景约束**（时间、预算、团队规模、技术栈）
-- 要求回答中必须包含**一个反直觉的观点**
-- 限定回答的**时间尺度**（"从3年后的视角回看"）
+| Anti-Pattern | Problem | Fix |
+|-------------|---------|-----|
+| **Vague request** | "Help me write a program" | Anchor language, functionality, input/output |
+| **Too broad** | "Teach me programming" | Break into specific sub-topics, tackle one at a time |
+| **Hidden assumption** | "How to increase conversion rate" | Expose the premise first: what's the current rate? Where's the bottleneck? |
+| **Contradictory constraints** | "Be concise but comprehensive" | Clarify priority, choose one direction |
+| **Missing role** | "What do you think of this plan" | From whose perspective? Tech? Product? CEO? |
+| **No format specified** | "Tell me about X" | Table? Bullet list? Deep analysis? Quick summary? |
+| **Over-constraining** | "Implement feature Y using framework X" | May block better solutions from being considered |
+| **Assumed consensus** | "Follow best practices" | Whose best practices? Which community? Which version? |
 
 ---
 
-## 高质量提问的 5 个信号
+## Identifying Consensus Answers
 
-1. **有明确的成功标准** — 用户知道什么样的回答算"好"
-2. **有约束条件** — 限定了范围、风格、深度、受众
-3. **有上下文** — AI 不需要猜测背景
-4. **有输出格式要求** — 明确要什么形式的回答
-5. **有探索空间** — 允许 AI 挑战假设、提出不同视角
+When a question is likely to produce consensus answers, it typically has these traits:
+
+1. **Searchable** — If Google's first result answers it, the AI will give a similar answer
+2. **Unconstrained** — Fewer constraints = answers converge on the "safe but mediocre" middle ground
+3. **Premises unchallenged** — When premises aren't questioned, answers stay within the default framework
+4. **Single perspective** — One angle of questioning = one angle of "standard answer"
+5. **Single time horizon** — Only asks "what to do now", never "how does this look in 5 years" or "under what conditions does this fail"
+
+### Techniques to Break Consensus
+
+- Ask the AI to find the **weakest assumption** in its own answer
+- Ask the AI to **make the strongest case for the opposite position**
+- Add **specific scenario constraints** (time, budget, team size, tech stack)
+- Require the answer to include **one counter-intuitive insight**
+- Specify a **time horizon** ("Looking back from 3 years in the future")
+
+---
+
+## 5 Signals of a High-Quality Question
+
+1. **Clear success criteria** — The user knows what counts as a "good" answer
+2. **Constraints present** — Scope, style, depth, and audience are bounded
+3. **Context provided** — The AI doesn't need to guess the background
+4. **Output format specified** — It's clear what form the answer should take
+5. **Room for exploration** — The AI is allowed to challenge assumptions and offer different perspectives

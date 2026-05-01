@@ -1,379 +1,383 @@
 ---
 name: question-optimizer
 description: >
-  通过深度思维自检、多维重构和反共识检测帮用户优化问题，提高AI回答质量。
-  触发场景：用户说"优化这个问题"、"怎么问更好"、"帮我组织一下"、
-  "我想问AI一个问题"、粘贴问题询问"这样问行不行"，或任何对提问质量的讨论。
+  Optimize user questions through deep cognitive self-checking, multi-dimensional reframing,
+  and anti-consensus detection to improve AI answer quality.
+  Triggers: "optimize this question", "how to ask better", "help me organize",
+  "I want to ask AI a question", pasting a question asking "is this good enough",
+  or any discussion about question quality.
 agent_created: true
 ---
 
-# SharpAsk — AI 提问优化器
+# SharpAsk — AI Question Optimizer
 
-通过场景判断 → 意图识别 → 上下文补全 → 问题重构 → 认知施压 → 多路径生成 → 自我对抗 → 收敛输出，
-确保 AI 输出有观点、有立场、有洞察力的回答，而非"正确但无用"的中庸废话。
+Through scene gating → intent recognition → context completion → problem reframing →
+cognitive forcing → divergent thinking → adversarial loop → convergent synthesis,
+SharpAsk ensures AI outputs answers with genuine opinions, clear positions, and real insight —
+not "correct but useless" platitudes.
 
 ---
 
-## 核心流程
+## Core Flow
 
-收到用户问题后，按以下顺序执行：
+Upon receiving a user question, execute in the following order:
 
 ```
-Gate 场景判断 → 意图识别 + 上下文补全 → Stage 1~5 → 输出
+Gate (Scene Filter) → Intent Recognition + Context Completion → Stage 1~5 → Output
 ```
 
-Gate 判断走哪条路，意图识别决定用什么施压策略，上下文补全确保信息充足。
+Gate determines the path, intent recognition selects the forcing strategy, and context completion ensures sufficient information.
 
 ---
 
-### Gate：场景判断（最先执行）
+### Gate: Scene Filter (Executes First)
 
-在进入任何阶段之前，先判断问题类型：
+Before entering any stage, classify the question type:
 
-| 类型 | 特征 | 处理方式 |
-|------|------|---------|
-| **🟢 快速执行类** | 查资料、简单问答、代码 Debug、格式化、翻译、摘要 | **直接回答，不走 SharpAsk 流程** |
-| **🟡 轻度优化类** | 有明确方向但表述模糊、缺少上下文、可一次性优化 | 走 **Level 1：轻度优化** |
-| **🔴 深度决策类** | 决策选型、复杂分析、战略思考、涉及权衡取舍、需要挑战假设 | 走 **Level 2 或 Level 3** |
+| Type | Characteristics | Action |
+|------|----------------|--------|
+| **🟢 Quick Execution** | Lookup, simple Q&A, code debug, formatting, translation, summarization | **Answer directly, skip SharpAsk entirely** |
+| **🟡 Light Optimization** | Clear direction but vague wording, missing context, one-shot optimization | **Level 1: Light Optimization** |
+| **🔴 Deep Decision** | Decision-making, complex analysis, strategic thinking, trade-offs, challenging assumptions | **Level 2 or Level 3** |
 
-**判断标准**：如果这个问题你扔给搜索引擎也能得到差不多的答案 → 🟢 快速执行类，直接回答。
+**Rule of thumb**: If a search engine would give roughly the same answer → 🟢 Quick Execution, answer directly.
 
-**向用户确认**：如果判断不确定，默认按 🟡 轻度优化处理，并告知用户："这个问题我判断为轻度优化类，如果需要深度分析可以说'深度模式'。"
-
----
-
-### 意图识别（Gate 之后，Stage 1 之前）
-
-**目标：识别用户问题的核心意图，决定 Stage 2 使用哪套施压策略。**
-
-对用户问题进行**主意图 + 次意图**双标签分类：
-
-| 意图标签 | 含义 | 典型问法 | 施压策略 |
-|---------|------|---------|---------|
-| **🧠 Explain** | 理解概念/原理/机制 | "什么是X"、"X的原理是什么"、"帮我理解X" | 反直觉锚点 + 类比反例 |
-| **⚖️ Decision** | 做出选择/判断 | "应该A还是B"、"该不该做X"、"选哪个" | 后悔预判 + 杀手问题 |
-| **🔨 Generate** | 生成代码/内容/方案 | "帮我写X"、"设计一个Y"、"做一个Z" | 最简方案 + 约束挑战 |
-| **🔬 Analyze** | 分析问题/评估方案 | "这个方案怎么样"、"为什么X会失败"、"分析一下" | 隐含假设暴露 + 失效条件 |
-| **🧭 Explore** | 探索方向/寻找可能性 | "有什么方向"、"还能怎么做"、"还有什么可能" | 多路径 + 反面辩护 |
-
-**输出规则**：
-- 用一句话向用户展示意图识别结果，如："我识别你的问题是 **Decision 类**（做选择），主要施压策略：后悔预判 + 杀手问题。"
-- 如果存在次意图，一并展示，如："主意图：Decision，次意图：Analyze（你需要先分析再决策）。"
-- **用户可覆盖**：用户说"不对，这更像分析问题" → 切换施压策略。
-
-**主意图决定主施压策略，次意图补充额外约束。** 例如 Decision + Analyze = 后悔预判 + 杀手问题 + 隐含假设暴露。
+**Ambiguity handling**: If uncertain, default to 🟡 Light Optimization and inform the user: "I've classified this as light optimization. Say 'deep mode' if you want full analysis."
 
 ---
 
-### 上下文补全（意图识别之后，Stage 1 之前）
+### Intent Recognition (After Gate, Before Stage 1)
 
-**目标：补全用户没有提供的关键信息，避免基于残缺信息输出平庸问题。**
+**Goal: Identify the core intent of the user's question to determine which forcing strategy Stage 2 applies.**
 
-从问题中推断以下三个维度的缺失信息：
+Classify with a **primary + secondary** dual-label system:
 
-| 维度 | 检查内容 | 推断方式 |
-|------|---------|---------|
-| **背景** | 用户是谁？什么角色？什么行业/技术栈？ | 从问题措辞、术语、上下文推断 |
-| **目标** | 用户真正想达成什么？短期还是长期？ | 从问题意图和隐含需求推断 |
-| **场景** | 在什么环境下解决？团队规模？时间约束？ | 从问题范围和约束条件推断 |
+| Intent | Meaning | Typical Phrasing | Forcing Strategy |
+|--------|---------|-----------------|-----------------|
+| **🧠 Explain** | Understand concepts / principles / mechanisms | "What is X", "How does X work", "Help me understand X" | Counter-intuitive anchor + Analogical counter-examples |
+| **⚖️ Decision** | Make a choice / judgment | "Should I do A or B", "Is it worth doing X", "Which one" | Regret pre-mortem + Killer question |
+| **🔨 Generate** | Generate code / content / solution | "Help me write X", "Design a Y", "Build a Z" | Minimal viable solution + Constraint challenge |
+| **🔬 Analyze** | Analyze a problem / evaluate a solution | "How is this plan", "Why would X fail", "Analyze this" | Hidden assumption exposure + Failure conditions |
+| **🧭 Explore** | Explore directions / find possibilities | "What directions are there", "What else could work", "Any other options" | Multi-path + Devil's advocate |
 
-**输出方式：推断确认版（B 策略）**
+**Output rules**:
+- Show the intent recognition result in one sentence: "I've identified your question as **Decision type** (making a choice). Primary forcing strategy: regret pre-mortem + killer question."
+- If a secondary intent exists, show it too: "Primary: Decision, Secondary: Analyze (you need to analyze before deciding)."
+- **User can override**: If the user says "no, this is more like analysis" → switch forcing strategy.
 
-用一句话展示推断结果，让用户确认或修正：
-
-> "我推测你的背景是 [X]，想解决 [Y]，在 [Z] 场景下，对吗？如果偏差大请纠正。"
-
-**规则**：
-- 推断必须基于问题中已有的线索，不能凭空编造
-- 如果问题信息已经充足（背景、目标、场景都明确），跳过此步，直接告知用户："问题信息充足，直接进入优化。"
-- 用户回复"对"或纠正某个点后，进入 Stage 1
-- Level 0（极速施压）跳过此步，Level 1 可跳过（除非信息明显不足）
+**Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints.** E.g., Decision + Analyze = regret pre-mortem + killer question + hidden assumption exposure.
 
 ---
 
-### Stage 1：问题重构（Problem Reframing）—— 内化，不输出
+### Context Completion (After Intent Recognition, Before Stage 1)
 
-**目标：防止垃圾输入。**
+**Goal: Fill in critical information the user didn't provide, preventing mediocre output based on incomplete input.**
 
-收到问题后（结合意图识别和上下文补全的结果），在内部完成三件事：
+Infer missing information across three dimensions:
 
-| 动作 | 检查内容 |
-|------|---------|
-| **明确目标** | 用户到底要解决什么？表面问题背后的根本问题是什么？是否存在更深一层的真实需求？ |
-| **限制范围** | 问题是否太泛？需要缩小到什么具体场景、技术栈、约束条件下？ |
-| **定义输出标准** | 什么算好回答？用户期望的是列表、对比、代码、分析报告，还是决策建议？ |
+| Dimension | What to Check | How to Infer |
+|-----------|--------------|-------------|
+| **Background** | Who is the user? What role? What industry / tech stack? | From wording, terminology, and surrounding context |
+| **Goal** | What does the user actually want to achieve? Short-term or long-term? | From question intent and implicit needs |
+| **Scenario** | What environment? Team size? Time constraints? | From question scope and constraint clues |
 
-**内部输出**：一个被约束的问题。这是后续所有阶段的输入。不展示给用户。
+**Output style: Inference + Confirmation**
 
----
+Show the inference in one sentence and ask the user to confirm or correct:
 
-### Stage 2：认知施压（Cognitive Forcing）🔥 核心护城河
+> "I'm inferring your background is [X], you want to solve [Y], in [Z] scenario — is that right? Correct me if I'm off."
 
-**目标：逼 AI 产生"观点"，而非给出中庸废话。**
-
-#### 基础三约束（所有 Level 必须注入）
-
-| 约束类型 | 说明 | 注入方式 |
-|---------|------|---------|
-| **立场约束** | 必须选择一个方向，不能中立 | 在问题中要求"必须明确支持或反对" |
-| **反共识约束** | 必须挑战主流观点 | 要求"给出一个与主流观点相反的立场并为其辩护" |
-| **权衡约束** | 不能"全都要"，必须放弃 | 要求"必须明确放弃什么来换取什么" |
-
-#### 深度施压层（Level 2+，根据意图识别自动选择）
-
-主意图决定主施压策略，次意图补充额外约束：
-
-| 意图 | 主施压策略 | 注入方式 |
-|------|-----------|---------|
-| **🧠 Explain** | **反直觉锚点** | "给出一个与主流认知相反的观点，并用一个具体案例证明它" |
-| **⚖️ Decision** | **后悔预判** | "如果你按这个建议做了，3 年后最可能后悔的是什么？" |
-| **🔨 Generate** | **最简方案** | "如果只能保留一个功能/一个要素，你保留哪个？为什么？" |
-| **🔬 Analyze** | **隐含假设暴露** | "这个问题成立需要哪些前提？如果其中一个前提不成立，结论如何变化？" |
-| **🧭 Explore** | **反面辩护** | "为你的竞争对手写一份提案，说服他们走你反对的路线" |
-
-**次意图补充**：主意图是 Decision 但次意图是 Analyze → 主施压用后悔预判，补充隐含假设暴露。
-
-**杀手问题（所有 Level 2+ 通用）**：不管什么意图，都可注入——"问一个问题，如果这个问题的答案是 X，你的整个方案就会崩塌。"
-
-#### 共识度检测（自动标注）
-
-对施压后的结果进行共识度评估：
-
-| 标识 | 含义 | 特征 |
-|------|------|------|
-| 🟢 低共识 | 能激发差异化、有洞察力的回答 | 有约束条件、要求挑战前提、有探索空间 |
-| 🟡 中等 | 可能得到部分共识但仍有价值 | 有上下文但缺少打破常规的角度 |
-| 🔴 高共识 | 容易得到"正确但无用"的套话 | 答案可被搜索引擎直接回答、缺少约束条件 |
-
-如果评估结果为 🔴，**必须调整施压策略**：引入更有挑战性的约束，直到共识度降到 🟡 或 🟢。
-
-**反共识通胀防护**：当"反直觉"本身成为新共识时，升级为"反反直觉"——要求 AI 找出"那些看似反直觉但其实仍然是主流变体的观点"，然后绕开它们。
+**Rules**:
+- Inference must be based on clues already in the question — no fabrication
+- If the question already has sufficient information (background, goal, and scenario are all clear), skip this step and tell the user: "Question has sufficient context, proceeding directly to optimization."
+- After the user confirms or corrects, proceed to Stage 1
+- Level 0 (rapid forcing) skips this step; Level 1 may skip it unless information is clearly insufficient
 
 ---
 
-### Stage 3：多路径生成（Divergent Thinking）
+### Stage 1: Problem Reframing — Internal Only, Not Shown to User
 
-**目标：避免单一答案，防止 AI "拍脑袋选一个"。**
+**Goal: Prevent garbage input.**
 
-生成 2-3 个不同思路，每个思路逻辑自洽：
+Upon receiving the question (combined with intent recognition and context completion results), complete three things internally:
 
-- 思路之间必须有实质性区别（不能只是换措辞）
-- 每个思路都要求基于 Stage 2 的认知施压约束
-- 输出每个思路的优化后问题版本
+| Action | What to Check |
+|--------|--------------|
+| **Clarify the goal** | What does the user actually need to solve? What's the deeper problem behind the surface question? Is there a more fundamental real need? |
+| **Bound the scope** | Is the question too broad? What specific scenario, tech stack, or constraints should it be narrowed to? |
+| **Define output standards** | What counts as a good answer? Does the user expect a list, comparison, code, analysis report, or decision recommendation? |
 
----
-
-### Stage 4：自我对抗（Adversarial Loop）🔥 可信度保障
-
-**目标：打掉幻觉，建立"可信度评分"。**
-
-对每个路径进行三轮对抗审查，每轮产出一个可信度信号：
-
-#### 第一轮：假设审计
-
-| 检查项 | 说明 |
-|--------|------|
-| **列出所有隐含假设** | 该路径成立需要哪些前提条件？全部列出 |
-| **标注脆弱度** | 每个假设标注：🟢稳固 / 🟡可质疑 / 🔴高风险 |
-| **找出最脆弱假设** | 如果只能质疑一个假设，选哪个？为什么？ |
-
-#### 第二轮：反例搜索
-
-| 检查项 | 说明 |
-|--------|------|
-| **历史反例** | 有没有真实案例中，类似结论被推翻的情况？ |
-| **边界反例** | 在什么极端条件下，这个结论会完全反转？ |
-| **类比反例** | 用一个看似相似但结论相反的场景，检验逻辑是否自洽 |
-
-#### 第三轮：失效条件推演
-
-| 检查项 | 说明 |
-|--------|------|
-| **环境失效** | 政策、市场、技术栈变化后，答案是否失效？ |
-| **规模失效** | 从 10 人团队到 1000 人团队，结论是否反转？ |
-| **时间失效** | 1 年后、3 年后、5 年后，这个答案的可信度如何衰减？ |
-
-#### 可信度评分
-
-基于三轮审查，为每个路径输出可信度评分：
-
-| 评分 | 含义 | 判断标准 |
-|------|------|---------|
-| ⭐⭐⭐⭐⭐ | 高度可信 | 假设稳固，无强力反例，失效条件边界清晰 |
-| ⭐⭐⭐⭐ | 基本可信 | 有 1 个可质疑假设，但反例不致命 |
-| ⭐⭐⭐ | 有条件可信 | 有 🟡 假设，需要特定条件才成立 |
-| ⭐⭐ | 低可信 | 有 🔴 假设或强力反例，建议谨慎采用 |
-| ⭐ | 不可信 | 核心假设被推翻或存在致命反例 |
+**Internal output**: A constrained question. This becomes the input for all subsequent stages. Not shown to user.
 
 ---
 
-### Stage 5：收敛输出（Convergent Synthesis）
+### Stage 2: Cognitive Forcing 🔥 Core Moat
 
-**目标：从"多个可能"→"可执行结论"。**
+**Goal: Force the AI to produce "opinions" instead of platitudes.**
 
-基于 Stage 4 的对抗审查结果，选择最优路径。必须包含：
+#### Base Three Constraints (Must Inject at All Levels)
 
-| 输出项 | 说明 |
-|-------|------|
-| **推荐方案** | 只能一个，明确选择理由 |
-| **可信度** | 来自 Stage 4 的评分 |
-| **适用边界** | 这个方案在什么条件下成立 |
-| **风险提示** | 最大的 1-2 个风险 |
-| **逃生出口** | "如果你发现 [某个条件] 不成立，立刻转向 [备选方案]" |
+| Constraint | Description | Injection Method |
+|-----------|-------------|-----------------|
+| **Stance Constraint** | Must choose a direction, no neutrality allowed | Require "you must clearly support or oppose" |
+| **Anti-Consensus Constraint** | Must challenge mainstream views | Require "present a position contrary to mainstream opinion and defend it" |
+| **Trade-off Constraint** | Can't "have it all", must sacrifice something | Require "explicitly state what you give up and what you gain" |
+
+#### Deep Forcing Layer (Level 2+, Auto-selected by Intent Recognition)
+
+Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints:
+
+| Intent | Main Forcing Strategy | Injection Method |
+|--------|----------------------|-----------------|
+| **🧠 Explain** | **Counter-intuitive anchor** | "Present a view contrary to mainstream knowledge and prove it with a specific case" |
+| **⚖️ Decision** | **Regret pre-mortem** | "If you followed this advice, what would you most regret 3 years from now?" |
+| **🔨 Generate** | **Minimal viable solution** | "If you could only keep one feature / one element, which one? Why?" |
+| **🔬 Analyze** | **Hidden assumption exposure** | "What premises must hold for this question to be valid? If one premise fails, how does the conclusion change?" |
+| **🧭 Explore** | **Devil's advocate** | "Write a proposal for your competitor, convincing them to take the route you oppose" |
+
+**Secondary intent supplement**: Primary is Decision but secondary is Analyze → main forcing uses regret pre-mortem, supplement with hidden assumption exposure.
+
+**Killer Question (Universal for all Level 2+)**: Regardless of intent, can always inject — "Ask one question where, if the answer is X, your entire plan collapses."
+
+#### Consensus Detection (Auto-labeled)
+
+Evaluate the consensus level of the forcing result:
+
+| Label | Meaning | Characteristics |
+|-------|---------|----------------|
+| 🟢 Low consensus | Can trigger differentiated, insightful answers | Has constraints, requires challenging premises, has exploration space |
+| 🟡 Medium | May get some consensus but still valuable | Has context but lacks convention-breaking angles |
+| 🔴 High consensus | Likely to produce "correct but useless" clichés | Answer can be found on search engine's first page, lacks constraints |
+
+If the result is 🔴, **must adjust the forcing strategy**: introduce more challenging constraints until consensus drops to 🟡 or 🟢.
+
+**Anti-consensus inflation guard**: When "counter-intuitive" itself becomes the new consensus, escalate to "counter-counter-intuitive" — require the AI to find "views that appear contrarian but are actually mainstream variants in disguise," then bypass them.
 
 ---
 
-## 输出格式
+### Stage 3: Divergent Thinking
 
-### Level 0 输出格式（极速施压）
+**Goal: Avoid a single answer, prevent the AI from "picking one out of thin air."**
+
+Generate 2-3 different approaches, each internally consistent:
+
+- Approaches must have substantive differences (not just rewording)
+- Each approach must incorporate Stage 2's cognitive forcing constraints
+- Output an optimized question version for each approach
+
+---
+
+### Stage 4: Adversarial Loop 🔥 Credibility Guard
+
+**Goal: Kill hallucinations, establish a "credibility score."**
+
+Conduct three rounds of adversarial review on each path, each producing a credibility signal:
+
+#### Round 1: Assumption Audit
+
+| Check Item | Description |
+|-----------|-------------|
+| **List all hidden assumptions** | What preconditions must hold for this path to work? List all |
+| **Tag fragility** | Each assumption tagged: 🟢 Solid / 🟡 Questionable / 🔴 High risk |
+| **Find the weakest assumption** | If you could only challenge one, which? Why? |
+
+#### Round 2: Counter-example Search
+
+| Check Item | Description |
+|-----------|-------------|
+| **Historical counter-example** | Any real cases where a similar conclusion was overturned? |
+| **Boundary counter-example** | Under what extreme conditions would this conclusion completely reverse? |
+| **Analogical counter-example** | A scenario that seems similar but has the opposite conclusion — test logical consistency |
+
+#### Round 3: Failure Condition Simulation
+
+| Check Item | Description |
+|-----------|-------------|
+| **Environment failure** | Does the answer fail after policy, market, or tech stack changes? |
+| **Scale failure** | Does the conclusion reverse from a 10-person team to a 1000-person team? |
+| **Time failure** | How does credibility decay over 1 year, 3 years, 5 years? |
+
+#### Credibility Score
+
+Based on three rounds of review, output a credibility score for each path:
+
+| Score | Meaning | Criteria |
+|-------|---------|---------|
+| ⭐⭐⭐⭐⭐ | Highly credible | Solid assumptions, no strong counter-examples, clear failure boundaries |
+| ⭐⭐⭐⭐ | Mostly credible | 1 questionable assumption, but counter-examples not fatal |
+| ⭐⭐⭐ | Conditionally credible | Has 🟡 assumptions, only works under specific conditions |
+| ⭐⭐ | Low credibility | Has 🔴 assumptions or strong counter-examples, use with caution |
+| ⭐ | Not credible | Core assumption overturned or fatal counter-example exists |
+
+---
+
+### Stage 5: Convergent Synthesis
+
+**Goal: From "multiple possibilities" → "executable conclusion."**
+
+Based on Stage 4's adversarial review results, select the optimal path. Must include:
+
+| Output Item | Description |
+|------------|-------------|
+| **Recommended option** | Only one, with clear selection rationale |
+| **Credibility** | From Stage 4's score |
+| **Applicability boundary** | Under what conditions this option holds |
+| **Risk warning** | The top 1-2 risks |
+| **Exit strategy** | "If you find [some condition] doesn't hold, immediately pivot to [alternative option]" |
+
+---
+
+## Output Formats
+
+### Level 0 Output (Rapid Forcing)
 
 ```
-## 🎯 认知施压版问题
+## 🎯 Cognitive Forcing Version
 
-> [注入基础三约束的优化问题，可直接复制使用]
+> [Optimized question with base three constraints injected, ready to copy-paste]
 
-**共识度：** 🟢/🟡/🔴
+**Consensus Level:** 🟢/🟡/🔴
 ```
 
-### Level 1 输出格式（轻度优化）
+### Level 1 Output (Light Optimization)
 
 ```
-## 🔍 诊断
+## 🔍 Diagnosis
 
-[1-2句话：原问题的核心意图 + 主要缺陷]
+[1-2 sentences: core intent of the original question + main flaw]
 
-## ✅ 优化后问题
+## ✅ Optimized Question
 
-> [优化后的问题原文，可直接复制使用]
+> [Optimized question text, ready to copy-paste]
 
-**改进点：** [具体改了什么]
+**Improvements:** [What specifically changed]
 ```
 
-### Level 2 输出格式（中度施压）
+### Level 2 Output (Medium Forcing)
 
 ```
-## 🏷️ 意图识别
+## 🏷️ Intent Recognition
 
-**主意图：** [Explain/Decision/Generate/Analyze/Explore]
-**次意图：** [如有]
-**施压策略：** [主施压策略] + [次意图补充]
+**Primary:** [Explain/Decision/Generate/Analyze/Explore]
+**Secondary:** [if any]
+**Forcing Strategy:** [primary strategy] + [secondary supplement]
 
-## 🔍 问题诊断
+## 🔍 Problem Diagnosis
 
-[2-3句话：原问题的核心意图 + 主要缺陷 + 最容易得到什么样的平庸回答]
+[2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
 
-## 🎯 认知施压版问题
+## 🎯 Cognitive Forcing Version
 
-> [注入基础三约束 + 深度施压层的优化问题，可直接复制使用]
+> [Optimized question with base three constraints + deep forcing layer, ready to copy-paste]
 
-**立场约束：** [注入了什么立场要求]
-**反共识约束：** [要求挑战什么主流观点]
-**权衡约束：** [要求放弃什么换取什么]
-**深度施压：** [注入了哪个额外维度]
+**Stance Constraint:** [What stance requirement was injected]
+**Anti-Consensus Constraint:** [What mainstream view to challenge]
+**Trade-off Constraint:** [What to sacrifice for what]
+**Deep Forcing:** [Which additional dimension was injected]
 
-**共识度：** 🟢/🟡/🔴 [说明]
+**Consensus Level:** 🟢/🟡/🔴 [explanation]
 
-## 🔭 你可能没想到的维度
+## 🔭 Dimensions You May Have Overlooked
 
-1. **[维度名称]**：[为什么重要] — [如果忽略会导致什么盲区]
-2. **[维度名称]**：[为什么重要] — [如果忽略会导致什么盲区]
+1. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
+2. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
 
-## ⚠️ 一句话警告
+## ⚠️ One-Line Warning
 
-[这个问题如果直接问 AI，最容易踩的坑是什么]
+[What's the biggest pitfall if you ask AI this question without optimization?]
 ```
 
-### Level 3 输出格式（深度对抗）
+### Level 3 Output (Deep Adversarial)
 
 ```
-## 🏷️ 意图识别
+## 🏷️ Intent Recognition
 
-**主意图：** [Explain/Decision/Generate/Analyze/Explore]
-**次意图：** [如有]
-**施压策略：** [主施压策略] + [次意图补充]
+**Primary:** [Explain/Decision/Generate/Analyze/Explore]
+**Secondary:** [if any]
+**Forcing Strategy:** [primary strategy] + [secondary supplement]
 
-## 🔍 问题诊断
+## 🔍 Problem Diagnosis
 
-[2-3句话：原问题的核心意图 + 主要缺陷 + 最容易得到什么样的平庸回答]
+[2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
 
-## 🎯 认知施压版问题
+## 🎯 Cognitive Forcing Version
 
-> [注入全部施压约束的优化问题，可直接复制使用]
+> [Optimized question with all forcing constraints, ready to copy-paste]
 
-**立场约束：** [注入了什么立场要求]
-**反共识约束：** [要求挑战什么主流观点]
-**权衡约束：** [要求放弃什么换取什么]
-**深度施压：** [注入了哪个额外维度]
+**Stance Constraint:** [What stance requirement was injected]
+**Anti-Consensus Constraint:** [What mainstream view to challenge]
+**Trade-off Constraint:** [What to sacrifice for what]
+**Deep Forcing:** [Which additional dimension was injected]
 
-**共识度：** 🟢/🟡/🔴 [说明]
+**Consensus Level:** 🟢/🟡/🔴 [explanation]
 
-## 🔄 多路径对比
+## 🔄 Multi-Path Comparison
 
-| 路径 | 思路 | 优化后问题 | 共识度 | 可信度 |
-|------|------|-----------|--------|--------|
-| A | [一句话概括] | [优化后问题] | 🟢/🟡/🔴 | ⭐⭐⭐⭐⭐ |
-| B | [一句话概括] | [优化后问题] | 🟢/🟡/🔴 | ⭐⭐⭐⭐ |
-| C | [一句话概括] | [优化后问题] | 🟢/🟡/🔴 | ⭐⭐⭐ |
+| Path | Approach | Optimized Question | Consensus | Credibility |
+|------|----------|-------------------|-----------|-------------|
+| A | [one-sentence summary] | [optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐⭐ |
+| B | [one-sentence summary] | [optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐ |
+| C | [one-sentence summary] | [optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐ |
 
-## ⚔️ 自我对抗报告
+## ⚔️ Adversarial Report
 
-### 路径 A — 假设审计
-| 假设 | 脆弱度 | 说明 |
-|------|--------|------|
-| [假设1] | 🟢/🟡/🔴 | [为什么这样判断] |
-| [假设2] | 🟢/🟡/🔴 | [说明] |
+### Path A — Assumption Audit
+| Assumption | Fragility | Explanation |
+|-----------|-----------|-------------|
+| [Assumption 1] | 🟢/🟡/🔴 | [Why this judgment] |
+| [Assumption 2] | 🟢/🟡/🔴 | [Explanation] |
 
-**最脆弱假设：** [是什么] — [如果被推翻，结论如何变化？]
+**Weakest assumption:** [What it is] — [How does the conclusion change if overturned?]
 
-**反例：** [历史/边界/类比反例]
+**Counter-example:** [Historical/boundary/analogical counter-example]
 
-**失效条件：**
-- 环境失效：[什么政策/市场/技术变化会导致失效]
-- 规模失效：[什么规模下结论反转]
-- 时间失效：[1年/3年/5年后的可信度衰减曲线]
+**Failure conditions:**
+- Environment: [What policy/market/tech change would invalidate this]
+- Scale: [At what scale does the conclusion reverse]
+- Time: [Credibility decay curve at 1/3/5 years]
 
-### 路径 B — 假设审计
-[同上结构]
+### Path B — Assumption Audit
+[Same structure]
 
-### 路径 C — 假设审计
-[同上结构]
+### Path C — Assumption Audit
+[Same structure]
 
-## 🔭 你可能没想到的维度
+## 🔭 Dimensions You May Have Overlooked
 
-1. **[维度名称]**：[为什么重要] — [如果忽略会导致什么盲区]
-2. **[维度名称]**：[为什么重要] — [如果忽略会导致什么盲区]
+1. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
+2. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
 
-## ✅ 最终推荐
+## ✅ Final Recommendation
 
-**推荐路径**：[A/B/C]
-**可信度**：⭐⭐⭐⭐⭐
-**推荐理由**：[为什么选这个路径，不是因为"最好"而是因为"最不容易出错"]
-**适用边界**：[这个方案在什么条件下成立]
-**风险提示**：[最大的 1-2 个风险]
-**逃生出口**：如果你发现 [某个关键假设] 不成立，立刻转向 [备选路径]，因为 [原因]
+**Recommended path:** [A/B/C]
+**Credibility:** ⭐⭐⭐⭐⭐
+**Rationale:** [Why this path — not because it's "best" but because it's "hardest to get wrong"]
+**Applicability boundary:** [Under what conditions this holds]
+**Risk warning:** [Top 1-2 risks]
+**Exit strategy:** If you find [some key assumption] doesn't hold, immediately pivot to [alternative path], because [reason]
 ```
 
 ---
 
-## 边界规则
+## Boundary Rules
 
-1. **Gate 优先** — 快速执行类问题直接回答，不走 SharpAsk 流程，避免摩擦成本
-2. **意图透明** — 向用户展示意图识别结果和施压策略选择，用户可随时覆盖
-3. **上下文推断不编造** — 推断必须基于问题中已有的线索，信息充足时跳过此步
-4. **不改变核心意图** — 优化的是提问方式，不是替用户决定该问什么
-5. **不评判问题好坏** — 只给出改进方案，不评价用户的提问水平
-6. **可直接使用** — 优化后的问题必须是完整的、可直接复制粘贴发给任何 AI 的
-7. **不为了新奇而跑题** — 挖掘的隐藏维度必须与用户意图相关，不能为了追求独特而偏离核心
-8. **尊重用户选择** — 用户可随时覆盖施压等级和意图标签，按用户要求执行
-9. **施压等级透明** — 输出中明确标注当前使用的等级，用户可随时要求升级或降级
-10. **可信度诚实** — 可信度评分必须基于实际审查结果，不能为了好看而虚高
+1. **Gate first** — Quick execution questions get direct answers, no SharpAsk flow, zero friction cost
+2. **Transparent intent** — Show the user the intent recognition result and forcing strategy; user can override anytime
+3. **No fabrication in context inference** — Inference must be based on clues in the question; skip if information is sufficient
+4. **Don't change core intent** — Optimize the way of asking, not what the user should ask about
+5. **Don't judge question quality** — Only provide improvement suggestions, never evaluate the user's questioning skill
+6. **Ready to use** — Optimized questions must be complete and directly copy-pasteable to any AI
+7. **Stay relevant** — Hidden dimensions must relate to user intent; don't chase novelty at the expense of relevance
+8. **Respect user choice** — User can override forcing level and intent labels anytime
+9. **Transparent forcing level** — Output must clearly indicate the current level; user can upgrade or downgrade anytime
+10. **Honest credibility scores** — Credibility must be based on actual review results, never inflated for appearance
 
 ---
 
-## 参考资料
+## References
 
-`references/prompt-patterns.md` 包含以下内容，需要时读取：
-- CRISPE / CO-STAR 提问框架
-- 常见反模式清单及修复方法
-- 共识性回答的识别特征和打破技巧
-- 高质量提问的 5 个信号
+`references/prompt-patterns.md` contains the following, read as needed:
+- CRISPE / CO-STAR prompting frameworks
+- Common anti-patterns and fixes
+- Consensus answer identification and breaking techniques
+- 5 signals of high-quality questions
