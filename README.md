@@ -1,4 +1,4 @@
-# SharpInput — AI 输入优化器 / Input Optimizer
+# SharpInput — AI 最强嘴替 / Input Optimizer
 
 > 智能输入优化框架，让你的任何输入（提问、陈述、方案、想法、需求）都被打磨成能让 AI 输出有洞察力观点的高质量版本。
 >
@@ -10,7 +10,7 @@
 
 <!-- LANG:ZH-START -->
 
-# SharpInput — AI 输入优化器
+# SharpInput — AI 最强嘴替
 
 大多数人的输入方式，注定了 AI 只能给出中庸答案。SharpInput 通过 **场景判断 → 记忆加载 → 意图识别 → 上下文补全 → 问题重构 → 认知施压 → 多路径生成 → 自我对抗 → 收敛输出 → 偏好学习**，强制 AI 产生立场、权衡和洞察，而非罗列教科书常识。
 
