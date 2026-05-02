@@ -57,6 +57,7 @@ Before entering any stage, classify the user input through a **signal detection 
 | **Requirement** | Describes what needs to be built/done; "帮我设计", "帮我做一个", "需要实现", "我想要一个"; "I need a", "build me", "design a", "create a" | "帮我设计一个用户增长方案" / "I need a user growth strategy" |
 | **Idea / proposal** | Presents an idea or opinion to validate; "我觉得", "我的想法是", "我想试试", "方案是"; "I think", "my idea is", "what if we", "proposal" | "我觉得应该用微服务重构" / "I think we should refactor to microservices" |
 | **Plan review** | Shares a plan or document for feedback; "这是我的方案", "帮我看看", "以下是我的计划"; "here's my plan", "review this", "check my approach" | "这是我的技术方案，帮我看看" / "Here's my technical plan, review it" |
+| **System prompt design** | Wants to write system prompts / custom instructions / agent configs; "帮我写一个system prompt", "设计一个AI助手的指令", "帮我写custom instructions", "agent配置"; "write a system prompt", "design custom instructions", "create agent config" | "帮我写一个客服机器人的system prompt" / "Write a system prompt for a code review agent" |
 
 #### Step 2: Decision Tree
 
@@ -81,6 +82,11 @@ Input received
   │   │   └─ 🔴 Level 2 (Medium Forcing): Has substance, needs framing
   │   └─ Detailed plan/idea/proposal that would benefit from adversarial review?
   │       └─ 🔴 Level 3 (Deep Adversarial): Full analysis with multi-path alternatives
+  │
+  ├─ Has System prompt design signal?
+  │   └─ YES → 🟡 Special Mode: Use system prompt design template from `references/advanced-techniques.md`.
+  │       Apply SharpInput's cognitive forcing to the design: "Your system prompt must have a clear
+  │       anti-definition — what it does NOT do is more important than what it does."
   │
   └─ No clear signal detected
       └─ 🟡 Level 1 by default. Inform user:
@@ -212,6 +218,9 @@ Upon receiving the question (combined with intent recognition and context comple
 | **Clarify the goal** | What does the user actually need to solve? What's the deeper problem behind the surface question? Is there a more fundamental real need? |
 | **Bound the scope** | Is the question too broad? What specific scenario, tech stack, or constraints should it be narrowed to? |
 | **Define output standards** | What counts as a good answer? Does the user expect a list, comparison, code, analysis report, or decision recommendation? |
+| **Compress if long** | If the input is very long (>500 words), extract the core question/statement to 2-3 sentences. Preserve key constraints. Note what was compressed. |
+
+> For long inputs, apply context compression: remove filler, merge similar points, prioritize constraints and goals. See `references/advanced-techniques.md` → Context/Token Management.
 
 **Internal output**: A constrained question. This becomes the input for all subsequent stages. Not shown to user.
 
@@ -232,17 +241,17 @@ Upon receiving the question (combined with intent recognition and context comple
 
 #### Deep Forcing Layer (Level 2+, Auto-selected by Intent Recognition)
 
-> 📖 **Reference**: For role-setting and persona construction in forcing constraints, see `references/prompt-patterns.md` → **CRISPE Framework** (Capacity/Request/Insight/Style/Personality/Experiment). Use the Capacity element to craft more precise stance constraints.
+> 📖 **Reference**: For role-setting and persona construction in forcing constraints, see `references/prompt-patterns.md` → **CRISPE Framework** (Capacity/Request/Insight/Style/Personality/Experiment). For advanced prompting techniques (CoT, few-shot, XML tags, role-based prompting) that can be woven into optimized questions, see `references/advanced-techniques.md`.
 
 Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints:
 
-| Intent | Main Forcing Strategy | Injection Method |
-|--------|----------------------|-----------------|
-| **🧠 Explain** | **Counter-intuitive anchor** | "Present a view contrary to mainstream knowledge and prove it with a specific case" |
-| **⚖️ Decision** | **Regret pre-mortem** | "If you followed this advice, what would you most regret 3 years from now?" |
-| **🔨 Generate** | **Minimal viable solution** | "If you could only keep one feature / one element, which one? Why?" |
-| **🔬 Analyze** | **Hidden assumption exposure** | "What premises must hold for this question to be valid? If one premise fails, how does the conclusion change?" |
-| **🧭 Explore** | **Devil's advocate** | "Write a proposal for your competitor, convincing them to take the route you oppose" |
+| Intent | Main Forcing Strategy | Injection Method | Technique Hint |
+|--------|----------------------|-----------------|----------------|
+| **🧠 Explain** | **Counter-intuitive anchor** | "Present a view contrary to mainstream knowledge and prove it with a specific case" | Use CoT: require step-by-step reasoning before conclusion |
+| **⚖️ Decision** | **Regret pre-mortem** | "If you followed this advice, what would you most regret 3 years from now?" | Use structured output: conclusion → reasoning → risk |
+| **🔨 Generate** | **Minimal viable solution** | "If you could only keep one feature / one element, which one? Why?" | Use few-shot: provide an example of the expected output style |
+| **🔬 Analyze** | **Hidden assumption exposure** | "What premises must hold for this question to be valid? If one premise fails, how does the conclusion change?" | Use XML tags: structure as `<assumptions>` → `<analysis>` → `<conclusion>` |
+| **🧭 Explore** | **Devil's advocate** | "Write a proposal for your competitor, convincing them to take the route you oppose" | Use role-based: assign specific adversarial persona |
 
 **Secondary intent supplement**: Primary is Decision but secondary is Analyze → main forcing uses regret pre-mortem, supplement with hidden assumption exposure.
 
@@ -409,6 +418,15 @@ After user selection, output:
 
 Quality gate: before outputting, check against 5 Signals (clear success criteria, constraints present, context provided, output format specified, room for exploration). Add any missing signal.
 
+Also run the 5-Dimension Prompt Quality Score (see `references/advanced-techniques.md` → Evaluation Framework):
+- **Clarity** (0-2): Is the optimized question unambiguous?
+- **Specificity** (0-2): Is it precisely scoped?
+- **Completeness** (0-2): Does it include all necessary context and constraints?
+- **Actionability** (0-2): Can the AI directly execute without asking clarifying questions?
+- **Robustness** (0-2): Would slightly different inputs still work with this question?
+
+If any dimension scores 0, fix it before outputting. Include the score summary at the end of the output.
+
 #### Step 4: Record User Preference + Optional Feedback
 
 After outputting the final question, execute two actions:
@@ -473,5 +491,14 @@ If user replies with feedback, record it as a high-quality preference signal in 
   - Common anti-patterns and fixes
   - Consensus answer identification and breaking techniques
   - 5 signals of high-quality questions
+- `references/advanced-techniques.md` — Advanced prompting techniques for optimized questions:
+  - Chain-of-Thought (CoT) reasoning
+  - Few-shot examples
+  - Role-based prompting
+  - XML tags for structured prompts
+  - Structured output forcing
+  - System prompt design templates
+  - Prompt quality evaluation (5-dimension scoring)
+  - Technique combination patterns
 - `references/self-learning.md` — Self-learning system specification (preference recording, application rules, sliding window)
 - `references/user-preferences.md` — Auto-maintained user preference data (do not edit manually)

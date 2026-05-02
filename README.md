@@ -73,6 +73,34 @@
 | **权衡约束** | 不能"全都要"，必须明确放弃什么 |
 | **可执行约束** | 必须给出下周就能执行的一个具体步骤 |
 
+## 提示词技术集成
+
+优化过程中会根据场景自动选择合适的提示词技术：
+
+| 技术 | 适用场景 | 效果 |
+|------|---------|------|
+| **CoT 思维链** | 复杂分析、多步推理 | 逼 AI 展示推理过程，不跳到结论 |
+| **Few-shot 示例** | 格式要求高、风格敏感 | 用示例而非描述来定义输出 |
+| **角色扮演** | 需要特定视角或专业判断 | 赋予 AI 具体身份，增强回答针对性 |
+| **XML 结构化** | 复杂多约束输入 | 用标签分段，避免约束互相干扰 |
+| **结构化输出** | 格式一致性要求高 | 明确定义输出结构，减少歧义 |
+
+## System Prompt 设计模式
+
+当输入涉及"帮我写 system prompt / custom instructions / agent 配置"时，SharpInput 会进入设计模式，帮助从零构建高质量的系统提示词。
+
+## 5 维质量评估
+
+每个优化后的输出附带质量评分：
+
+| 维度 | 含义 |
+|------|------|
+| **清晰度** | 是否无歧义 |
+| **具体性** | 范围是否精确 |
+| **完整性** | 是否包含所有必要上下文和约束 |
+| **可执行性** | AI 是否能直接执行，无需追问 |
+| **鲁棒性** | 略有变化的输入是否仍然适用 |
+
 ## 意图识别
 
 | 意图 | 含义 | 典型输入 | 施压策略 |
@@ -203,6 +231,7 @@ SharpInput/
 ├── references/
 │   ├── output-templates.md          # 输出模板（Level 0~3）+ 自适应规则
 │   ├── prompt-patterns.md           # 提问框架参考（CRISPE/CO-STAR）
+│   ├── advanced-techniques.md       # 高级提示词技术（CoT/Few-shot/XML/角色扮演/评估框架）
 │   ├── self-learning.md             # 自我学习系统规范
 │   └── user-preferences.md          # 用户偏好数据（自动维护）
 ├── README.md
@@ -285,6 +314,34 @@ Most people provide inputs in ways that guarantee mediocre answers. SharpInput a
 | **Anti-consensus** | Must challenge mainstream views and defend it |
 | **Trade-off** | Can't have it all; must declare what to sacrifice |
 | **Actionability** | Must give one specific action the user can take this week |
+
+## Prompting Techniques Integration
+
+Optimization automatically selects appropriate prompting techniques based on the scenario:
+
+| Technique | Use Case | Effect |
+|-----------|----------|--------|
+| **Chain-of-Thought** | Complex analysis, multi-step reasoning | Forces AI to show reasoning, prevents jumping to conclusions |
+| **Few-shot examples** | High format requirements, style-sensitive | Defines output through examples, not descriptions |
+| **Role-based prompting** | Need specific perspective or expertise | Assigns concrete identity to AI, increases relevance |
+| **XML structuring** | Complex multi-constraint inputs | Tags to separate sections, prevents constraint interference |
+| **Structured output** | High format consistency needs | Explicitly defines output structure, reduces ambiguity |
+
+## System Prompt Design Mode
+
+When input involves "write a system prompt / custom instructions / agent config", SharpInput enters design mode to help build high-quality system prompts from scratch.
+
+## 5-Dimension Quality Score
+
+Every optimized output includes a quality score:
+
+| Dimension | Meaning |
+|-----------|---------|
+| **Clarity** | Unambiguous |
+| **Specificity** | Precisely scoped |
+| **Completeness** | All necessary context and constraints included |
+| **Actionability** | AI can directly execute without asking |
+| **Robustness** | Still works with slightly different inputs |
 
 ## Intent Recognition
 
@@ -412,6 +469,7 @@ SharpInput/
 ├── references/
 │   ├── output-templates.md          # Output templates (Level 0~3) + adaptive rules
 │   ├── prompt-patterns.md           # Prompting frameworks (CRISPE / CO-STAR)
+│   ├── advanced-techniques.md       # Advanced prompting (CoT/Few-shot/XML/Role-based/Evaluation)
 │   ├── self-learning.md             # Self-learning system specification
 │   └── user-preferences.md          # User preference data (auto-maintained)
 ├── README.md

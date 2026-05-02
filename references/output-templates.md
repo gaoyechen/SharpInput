@@ -169,6 +169,8 @@ C — [one-line summary]
 适用边界: [under what conditions this works best]
 风险提示: [top risk]
 如果回答方向不对，追问: "[follow-up question]"
+
+优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
 ```
 
 Self-learning note: After outputting the final question, silently record user preference data and append optional feedback line:
