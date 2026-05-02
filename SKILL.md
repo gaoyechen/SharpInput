@@ -349,16 +349,36 @@ Based on three rounds of review, output a credibility score for each path:
 
 #### Step 1: Present Selection Prompt
 
-After showing multi-path table and adversarial report, present a selection prompt:
+After showing multi-path table and adversarial report, use the **AskUserQuestion** tool to present an interactive selection prompt. This gives users clickable options instead of requiring text input.
 
+**AskUserQuestion parameters:**
+- `question`: "选择一条路径，我会输出最终打磨好的问题" / "Pick a path — I'll produce a final polished question"
+- `header`: "选择路径" / "Path"
+- `options`: Generate one option per path from the multi-path table. Each option should include:
+  - `label`: Path letter + angle tag (e.g., "A — risk-first")
+  - `description`: One-line summary of the path's approach + credibility score
+- Place the **highest-credibility path first** (this serves as the recommendation hint)
+- The last option should be `label: "组合/Combine"` with description explaining that the user can describe a custom combination via "Other"
+
+**Example AskUserQuestion call (3 paths):**
+```
+question: "选择一条路径，我会输出最终打磨好的问题"
+header: "选择路径"
+options:
+  - label: "A — risk-first"
+    description: "聚焦风险和下行分析，可信度 ⭐⭐⭐⭐⭐"
+  - label: "B — counter-intuitive"
+    description: "寻找反直觉答案，可信度 ⭐⭐⭐⭐"
+  - label: "C — time-horizon"
+    description: "拉到 3-5 年后审视，可信度 ⭐⭐⭐"
+  - label: "组合"
+    description: "混搭多条路径元素，选择 Other 描述你想要的组合"
+```
+
+**Fallback**: If AskUserQuestion tool is not available, fall back to text-based prompt:
 > **ZH:** "选择一条路径（A / B / C），可以组合元素（如'A的切入角度 + B的约束条件'，最多 3 条），或描述你想要的 — 我会输出最终打磨好的问题。"
 >
 > **EN:** "Pick a path (A / B / C), combine elements (e.g., 'A's angle + B's constraint', max 3 paths), or describe what you want — I'll produce a final polished question."
-
-Include a recommendation hint (biased by user preferences if available):
-> **ZH:** "如果犹豫：路径 X 可信度最高（⭐⭐⭐⭐⭐），适用范围最广。"
->
-> **EN:** "If undecided: Path X has the highest credibility (⭐⭐⭐⭐⭐) and the broadest applicability."
 
 #### Step 2: Handle User Response
 
