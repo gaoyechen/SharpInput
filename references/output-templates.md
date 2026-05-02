@@ -132,18 +132,22 @@ The output follows this **strict order**: Level → 诊断 → 意图 → 路径
 - **No "组合/Combine" option needed** — multi-select natively handles combination
 - Place the **highest-credibility path first** (serves as recommendation hint)
 
-**Example AskUserQuestion call:**
-```
-question: "选择路径（可多选），我会输出最终打磨好的问题"
-header: "选择路径"
-multiSelect: true
-options:
-  - label: "A — risk-first"
-    description: "聚焦风险和下行分析，可信度 ⭐⭐⭐⭐⭐"
-  - label: "B — counter-intuitive"
-    description: "寻找反直觉答案，可信度 ⭐⭐⭐⭐"
-  - label: "C — time-horizon"
-    description: "拉到 3-5 年后审视，可信度 ⭐⭐⭐"
+**Example AskUserQuestion call (JSON, matches tool schema exactly):**
+```json
+{
+  "questions": [
+    {
+      "question": "选择路径（可多选），我会输出最终打磨好的问题",
+      "header": "选择路径",
+      "multiSelect": true,
+      "options": [
+        {"label": "A — risk-first", "description": "聚焦风险和下行分析，可信度 ⭐⭐⭐⭐⭐"},
+        {"label": "B — counter-intuitive", "description": "寻找反直觉答案，可信度 ⭐⭐⭐⭐"},
+        {"label": "C — time-horizon", "description": "拉到 3-5 年后审视，可信度 ⭐⭐⭐"}
+      ]
+    }
+  ]
+}
 ```
 
 **Fallback (if tool unavailable):**
@@ -240,58 +244,44 @@ SharpInput uses interactive dialogs in three scenarios:
 
 ### Standard Dialog Templates
 
+**⚠️ IMPORTANT**: All examples below show the content inside the `questions[0]` object. When calling the tool, wrap in `{"questions": [...]}`.
+
 #### Budget Clarification
 ```json
-{
-  "question": "你的预算范围是？",
-  "header": "预算",
-  "options": [
-    {"label": "1000-2000 元", "description": "入门级选择"},
-    {"label": "2000-5000 元", "description": "中端选择"},
-    {"label": "5000-9000 元", "description": "高端选择"},
-    {"label": "其他", "description": "自定义预算范围"}
-  ]
-}
+{"questions": [{"question": "你的预算范围是？", "header": "预算", "options": [
+  {"label": "1000-2000 元", "description": "入门级选择"},
+  {"label": "2000-5000 元", "description": "中端选择"},
+  {"label": "5000-9000 元", "description": "高端选择"},
+  {"label": "其他", "description": "自定义预算范围"}
+]}]}
 ```
 
 #### Timeline Clarification
 ```json
-{
-  "question": "你期望的时间范围是？",
-  "header": "时间",
-  "options": [
-    {"label": "1周内", "description": "紧急，需要快速交付"},
-    {"label": "1个月内", "description": "中等节奏"},
-    {"label": "3个月+", "description": "不急，可以深入打磨"},
-    {"label": "其他", "description": "自定义时间范围"}
-  ]
-}
+{"questions": [{"question": "你期望的时间范围是？", "header": "时间", "options": [
+  {"label": "1周内", "description": "紧急，需要快速交付"},
+  {"label": "1个月内", "description": "中等节奏"},
+  {"label": "3个月+", "description": "不急，可以深入打磨"},
+  {"label": "其他", "description": "自定义时间范围"}
+]}]}
 ```
 
 #### Scope/Scale Clarification
 ```json
-{
-  "question": "你的问题规模是？",
-  "header": "规模",
-  "options": [
-    {"label": "具体问题", "description": "单一、明确的问题点"},
-    {"label": "系统性问题", "description": "涉及多个关联因素"},
-    {"label": "战略性问题", "description": "长期、大方向的决策"}
-  ]
-}
+{"questions": [{"question": "你的问题规模是？", "header": "规模", "options": [
+  {"label": "具体问题", "description": "单一、明确的问题点"},
+  {"label": "系统性问题", "description": "涉及多个关联因素"},
+  {"label": "战略性问题", "description": "长期、大方向的决策"}
+]}]}
 ```
 
 #### Technical vs Non-technical
 ```json
-{
-  "question": "你的问题更偏向哪个领域？",
-  "header": "领域",
-  "options": [
-    {"label": "技术实现", "description": "代码、架构、工程相关"},
-    {"label": "产品/业务", "description": "策略、增长、用户体验相关"},
-    {"label": "个人决策", "description": "职业、生活、学习相关"}
-  ]
-}
+{"questions": [{"question": "你的问题更偏向哪个领域？", "header": "领域", "options": [
+  {"label": "技术实现", "description": "代码、架构、工程相关"},
+  {"label": "产品/业务", "description": "策略、增长、用户体验相关"},
+  {"label": "个人决策", "description": "职业、生活、学习相关"}
+]}]}
 ```
 
 ### Dialog Design Rules

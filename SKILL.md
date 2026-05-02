@@ -18,6 +18,15 @@ agent_created: true
 # SharpInput — AI Input Optimizer
 
 > ⚠️ **GOLDEN RULE — Interactive Dialogs**: When this skill instructs you to present options to the user (for intent clarification, parameter collection, or path selection), you **MUST call the `AskUserQuestion` tool**. **NEVER** output text-based options like "A / B / C" or bullet-list choices — these are **NOT interactive** and the user **cannot click them**. The only acceptable way to present choices is via the `AskUserQuestion` tool call. **This rule applies everywhere in this skill without exception.**
+>
+> **Exact call format** (the tool parameter is `questions`, an array of question objects):
+> ```json
+> {"questions": [{"question": "你的问题？", "header": "标签", "options": [
+>   {"label": "选项A", "description": "说明"},
+>   {"label": "选项B", "description": "说明"}
+> ]}]}
+> ```
+> For multi-select, add `"multiSelect": true` inside the question object.
 
 Through scene gating → intent recognition → context completion → problem reframing →
 cognitive forcing → divergent thinking → adversarial loop → convergent synthesis,
@@ -113,17 +122,21 @@ When confidence is low, you **MUST call the AskUserQuestion tool** to present cl
 - A "Level override" option for direct level selection
 - An "Other" option for custom input
 
-**Example AskUserQuestion call:**
-```
-question: "我不确定如何分类你的问题，请选择最符合的意图"
-header: "意图确认"
-options:
-  - label: "选项 A"
-    description: "适用于 [场景描述]"
-  - label: "选项 B"
-    description: "适用于 [场景描述]"
-  - label: "直接指定等级"
-    description: "选择 Level 0/1/2/3 进入对应优化模式"
+**Example AskUserQuestion call (JSON format, matches tool schema exactly):**
+```json
+{
+  "questions": [
+    {
+      "question": "我不确定如何分类你的问题，请选择最符合的意图",
+      "header": "意图确认",
+      "options": [
+        {"label": "选项 A", "description": "适用于 [场景描述]"},
+        {"label": "选项 B", "description": "适用于 [场景描述]"},
+        {"label": "直接指定等级", "description": "选择 Level 0/1/2/3 进入对应优化模式"}
+      ]
+    }
+  ]
+}
 ```
 
 **Domain-specific clarification dialogs:**
@@ -131,44 +144,31 @@ options:
 For certain common ambiguous scenarios, use specialized dialog options:
 
 1. **Purchase/Budget decisions** (when input mentions buying, pricing, cost, or budget but range is unclear):
-   ```
-   question: "你的预算范围是？"
-   header: "预算确认"
-   options:
-     - label: "1000-2000 元"
-       description: "入门级选择"
-     - label: "2000-5000 元"
-       description: "中端选择"
-     - label: "5000-9000 元"
-       description: "高端选择"
-     - label: "其他"
-       description: "自定义预算范围，选择 Other 输入具体金额"
+   ```json
+   {"questions": [{"question": "你的预算范围是？", "header": "预算确认", "options": [
+     {"label": "1000-2000 元", "description": "入门级选择"},
+     {"label": "2000-5000 元", "description": "中端选择"},
+     {"label": "5000-9000 元", "description": "高端选择"},
+     {"label": "其他", "description": "自定义预算范围，选择 Other 输入具体金额"}
+   ]}]}
    ```
 
 2. **Technical vs Non-technical** (when domain is unclear):
-   ```
-   question: "你的问题更偏向哪个领域？"
-   header: "领域确认"
-   options:
-     - label: "技术实现"
-       description: "代码、架构、工程相关"
-     - label: "产品/业务"
-       description: "策略、增长、用户体验相关"
-     - label: "个人决策"
-       description: "职业、生活、学习相关"
+   ```json
+   {"questions": [{"question": "你的问题更偏向哪个领域？", "header": "领域确认", "options": [
+     {"label": "技术实现", "description": "代码、架构、工程相关"},
+     {"label": "产品/业务", "description": "策略、增长、用户体验相关"},
+     {"label": "个人决策", "description": "职业、生活、学习相关"}
+   ]}]}
    ```
 
 3. **Scope clarification** (when problem scale is ambiguous):
-   ```
-   question: "你的问题规模是？"
-   header: "规模确认"
-   options:
-     - label: "具体问题"
-       description: "单一、明确的问题点"
-     - label: "系统性问题"
-       description: "涉及多个关联因素"
-     - label: "战略性问题"
-       description: "长期、大方向的决策"
+   ```json
+   {"questions": [{"question": "你的问题规模是？", "header": "规模确认", "options": [
+     {"label": "具体问题", "description": "单一、明确的问题点"},
+     {"label": "系统性问题", "description": "涉及多个关联因素"},
+     {"label": "战略性问题", "description": "长期、大方向的决策"}
+   ]}]}
    ```
 
 **Dialog selection rules:**
@@ -274,19 +274,14 @@ When critical information is missing, you **MUST call the AskUserQuestion tool**
 | **Tech Stack** | "用什么", "框架", "技术", "language", "framework", "stack" | 提供常见选项 + "Other" |
 | **Role/Perspective** | "从谁的角度", "角色", "perspective", "role", "standpoint" | 技术 / 产品 / 管理层 / 用户 / Other |
 
-**AskUserQuestion call pattern:**
-```
-question: "[Chinese or English question matching user's language]"
-header: "[Short label, 2-4 chars]"
-options:
-  - label: "[Option 1]"
-    description: "[What this option means]"
-  - label: "[Option 2]"
-    description: "[What this option means]"
-  - label: "[Option 3]"
-    description: "[What this option means]"
-  - label: "其他"
-    description: "自定义，选择 Other 输入具体值"
+**AskUserQuestion call pattern (JSON, matches tool schema exactly):**
+```json
+{"questions": [{"question": "[Chinese or English question matching user's language]", "header": "[Short label, 2-4 chars]", "options": [
+  {"label": "[Option 1]", "description": "[What this option means]"},
+  {"label": "[Option 2]", "description": "[What this option means]"},
+  {"label": "[Option 3]", "description": "[What this option means]"},
+  {"label": "其他", "description": "自定义，选择 Other 输入具体值"}
+]}]}
 ```
 
 **Fallback**: If AskUserQuestion tool is not available, use the text-based inference + confirmation pattern:
@@ -504,18 +499,22 @@ Output in this **strict order**:
 - **No "组合/Combine" option needed** — multi-select natively handles combination
 - Place the **highest-credibility path first** (serves as recommendation hint)
 
-**Example AskUserQuestion call:**
-```
-question: "选择路径（可多选），我会输出最终打磨好的问题"
-header: "选择路径"
-multiSelect: true
-options:
-  - label: "A — risk-first"
-    description: "聚焦风险和下行分析，可信度 ⭐⭐⭐⭐⭐"
-  - label: "B — counter-intuitive"
-    description: "寻找反直觉答案，可信度 ⭐⭐⭐⭐"
-  - label: "C — time-horizon"
-    description: "拉到 3-5 年后审视，可信度 ⭐⭐⭐"
+**Example AskUserQuestion call (JSON, matches tool schema exactly — `multiSelect` goes inside the question object):**
+```json
+{
+  "questions": [
+    {
+      "question": "选择路径（可多选），我会输出最终打磨好的问题",
+      "header": "选择路径",
+      "multiSelect": true,
+      "options": [
+        {"label": "A — risk-first", "description": "聚焦风险和下行分析，可信度 ⭐⭐⭐⭐⭐"},
+        {"label": "B — counter-intuitive", "description": "寻找反直觉答案，可信度 ⭐⭐⭐⭐"},
+        {"label": "C — time-horizon", "description": "拉到 3-5 年后审视，可信度 ⭐⭐⭐"}
+      ]
+    }
+  ]
+}
 ```
 
 **Fallback**: If AskUserQuestion tool is not available, fall back to text-based prompt:
