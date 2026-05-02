@@ -1,6 +1,6 @@
 # Output Templates
 
-Output templates for all SharpAsk forcing levels. Read this file when rendering output.
+Output templates for all SharpInput forcing levels. Read this file when rendering output.
 
 ---
 
@@ -27,7 +27,7 @@ Templates below are the **default** format. Apply these adaptive rules:
 ```
 ## 🎯 Cognitive Forcing Version
 
-> [Optimized question with base three constraints injected, ready to copy-paste]
+> [Optimized question with base four constraints injected (stance + anti-consensus + trade-off + actionability), ready to copy-paste]
 
 **Consensus Level:** 🟢/🟡/🔴
 ```
@@ -65,11 +65,12 @@ Templates below are the **default** format. Apply these adaptive rules:
 
 ## 🎯 Cognitive Forcing Version
 
-> [Optimized question with base three constraints + deep forcing layer, ready to copy-paste]
+> [Optimized question with base four constraints + deep forcing layer, ready to copy-paste]
 
 **Stance Constraint:** [What stance requirement was injected]
 **Anti-Consensus Constraint:** [What mainstream view to challenge]
 **Trade-off Constraint:** [What to sacrifice for what]
+**Actionability Constraint:** [What concrete first step is required]
 **Deep Forcing:** [Which additional dimension was injected]
 
 **Consensus Level:** 🟢/🟡/🔴 [explanation]
@@ -111,7 +112,7 @@ Level 3 has three output phases: **Phase 1** (Analysis) is shown automatically, 
 | B | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐ |
 | C | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐ |
 
-> Each path's optimized question already incorporates all forcing constraints (stance, anti-consensus, trade-off, deep forcing). The Angle column shows the path's distinctive perspective from the standard vocabulary.
+> Each path's optimized question already incorporates all forcing constraints (stance, anti-consensus, trade-off, actionability, deep forcing). The Angle column shows the path's distinctive perspective from the standard vocabulary.
 
 ## ⚔️ Adversarial Report
 
@@ -167,9 +168,10 @@ Pick a path, combine elements, or describe what you prefer:
 > [Full polished question — clean, no meta-commentary, ready to copy-paste into any AI]
 
 **Embedded constraints:**
-- [Constraint 1 — what it forces and why]
-- [Constraint 2]
-- [Constraint 3]
+- [Stance Constraint — what position was forced]
+- [Anti-Consensus Constraint — what mainstream view was challenged]
+- [Trade-off Constraint — what was sacrificed for what]
+- [Actionability Constraint — what concrete first step was demanded]
 
 **Best used when:** [Applicability boundary]
 **Watch out for:** [Top risk]

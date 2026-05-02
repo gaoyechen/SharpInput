@@ -195,6 +195,7 @@ Show the inference in one sentence and ask the user to confirm or correct:
 - After the user confirms or corrects, proceed to Stage 1
 - Level 0 (rapid forcing) skips this step; Level 1 may skip it unless information is clearly insufficient
 - **Language matching**: All user-facing messages in this flow must match the user's language (Chinese in → Chinese out, English in → English out)
+- **Conditional answer for vague inputs**: When information is clearly insufficient (Level 1, vague input), do NOT only ask clarifying questions. Instead, provide a **conditional framework** alongside the questions: "If your situation is [X], my suggestion is [Y]. If it's [A], then [B]. Confirm which applies to you." This ensures the user gets directional value even without answering all questions.
 
 ---
 
@@ -220,13 +221,14 @@ Upon receiving the question (combined with intent recognition and context comple
 
 **Goal: Force the AI to produce "opinions" instead of platitudes.**
 
-#### Base Three Constraints (Must Inject at All Levels)
+#### Base Four Constraints (Must Inject at All Levels)
 
 | Constraint | Description | Injection Method |
 |-----------|-------------|-----------------|
 | **Stance Constraint** | Must choose a direction, no neutrality allowed | Require "you must clearly support or oppose" |
 | **Anti-Consensus Constraint** | Must challenge mainstream views | Require "present a position contrary to mainstream opinion and defend it" |
 | **Trade-off Constraint** | Can't "have it all", must sacrifice something | Require "explicitly state what you give up and what you gain" |
+| **Actionability Constraint** | Must produce a concrete first step | Require "give me one specific action I can take this week — not a direction, not a framework, a step" |
 
 #### Deep Forcing Layer (Level 2+, Auto-selected by Intent Recognition)
 
