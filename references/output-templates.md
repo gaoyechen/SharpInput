@@ -8,15 +8,17 @@ Output templates for all SharpInput forcing levels. Read this file when renderin
 
 Templates below are the **default** format. Apply these adaptive rules:
 
+**Level display (mandatory)**: Every output must start with the current Level on its own line: `[Level 0]` / `[Level 1]` / `[Level 2]` / `[Level 3]`. This lets the user know which level they're at and whether to upgrade.
+
 **Summary mode (Level 3 default)**: Level 3 output is long. By default, render a **compact version**:
-- Show: Intent Recognition → Multi-Path table → Selection Prompt
+- Show: Level → Intent Recognition → Multi-Path table → Selection Prompt
 - Collapse Adversarial Report into one-line credibility+key-risk per path
 - Collapse Dimensions into a single combined list
 - User can say "expand" or "full report" to see full adversarial analysis before selecting
 
 **Progressive disclosure (all levels)**: If the user says "stop" or "just give me the question" at any stage, skip remaining stages and output whatever is ready.
 
-**Language adaptation**: Output template placeholders (e.g., `[Dimension name]`, `[Why it matters]`) should follow the user's language. If the user writes in Chinese, use Chinese placeholders; if in English, use English.
+**Language adaptation**: Output template placeholders should follow the user's language. If the user writes in Chinese, use Chinese placeholders; if in English, use English.
 
 **Focus mode**: If the user specifies a focus (e.g., "only show me the adversarial part" or "skip the diagnosis"), output only the requested sections.
 
@@ -25,11 +27,12 @@ Templates below are the **default** format. Apply these adaptive rules:
 ## Level 0 Output (Rapid Forcing)
 
 ```
-## 🎯 Cognitive Forcing Version
+[Level 0]
 
 > [Optimized question with base four constraints injected (stance + anti-consensus + trade-off + actionability), ready to copy-paste]
 
-**Consensus Level:** 🟢/🟡/🔴
+Consensus Level: [low/medium/high]
+说「升级」可进入 Level 1~3。
 ```
 
 ---
@@ -37,15 +40,15 @@ Templates below are the **default** format. Apply these adaptive rules:
 ## Level 1 Output (Light Optimization)
 
 ```
-## 🔍 Diagnosis
+[Level 1]
 
-[1-2 sentences: core intent of the original question + main flaw]
+诊断: [1-2 sentences: core intent + main flaw]
 
-## ✅ Optimized Question
-
+优化后:
 > [Optimized question text, ready to copy-paste]
 
-**Improvements:** [What specifically changed]
+改进点: [What specifically changed]
+说「升级」可进入 Level 2/3。
 ```
 
 ---
@@ -53,36 +56,31 @@ Templates below are the **default** format. Apply these adaptive rules:
 ## Level 2 Output (Medium Forcing)
 
 ```
-## 🏷️ Intent Recognition
+[Level 2]
 
-**Primary:** [Explain/Decision/Generate/Analyze/Explore]
-**Secondary:** [if any]
-**Forcing Strategy:** [primary strategy] + [secondary supplement]
+意图: [Explain/Decision/Generate/Analyze/Explore]（如有次意图也列出）
+施压策略: [primary strategy] + [secondary supplement]
 
-## 🔍 Problem Diagnosis
+诊断: [2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
 
-[2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
-
-## 🎯 Cognitive Forcing Version
-
+优化后:
 > [Optimized question with base four constraints + deep forcing layer, ready to copy-paste]
 
-**Stance Constraint:** [What stance requirement was injected]
-**Anti-Consensus Constraint:** [What mainstream view to challenge]
-**Trade-off Constraint:** [What to sacrifice for what]
-**Actionability Constraint:** [What concrete first step is required]
-**Deep Forcing:** [Which additional dimension was injected]
+施压详情:
+- 立场约束: [what stance was forced]
+- 反共识约束: [what mainstream view to challenge]
+- 权衡约束: [what to sacrifice for what]
+- 可执行约束: [what concrete first step is required]
+- 深度施压: [which additional dimension was injected]
 
-**Consensus Level:** 🟢/🟡/🔴 [explanation]
+共识度: [low/medium/high]
 
-## 🔭 Dimensions You May Have Overlooked
+被忽略的维度:
+1. [Dimension]: [why it matters]
+2. [Dimension]: [why it matters]
 
-1. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
-2. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
-
-## ⚠️ One-Line Warning
-
-[What's the biggest pitfall if you ask AI this question without optimization?]
+一句话警告: [biggest pitfall without optimization]
+说「升级」可进入 Level 3。
 ```
 
 ---
@@ -94,53 +92,42 @@ Level 3 has three output phases: **Phase 1** (Analysis) is shown automatically, 
 ### Phase 1: Analysis
 
 ```
-## 🏷️ Intent Recognition
+[Level 3]
 
-**Primary:** [Explain/Decision/Generate/Analyze/Explore]
-**Secondary:** [if any]
-**Forcing Strategy:** [primary strategy] + [secondary supplement]
+意图: [Explain/Decision/Generate/Analyze/Explore]（如有次意图也列出）
+施压策略: [primary strategy] + [secondary supplement]
 
-## 🔍 Problem Diagnosis
+诊断: [2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
 
-[2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
+路径对比:
+| 路径 | 角度 | 方案概述 | 共识度 | 可信度 |
+|------|------|---------|--------|--------|
+| A | [angle tag] | [one-sentence] | [low/med/high] | 高 |
+| B | [angle tag] | [one-sentence] | [low/med/high] | 中高 |
+| C | [angle tag] | [one-sentence] | [low/med/high] | 中 |
 
-## 🔄 Multi-Path Comparison
+每条路径的优化问题已包含全部施压约束（立场、反共识、权衡、可执行、深度施压）。
 
-| Path | Angle | Approach | Optimized Question | Consensus | Credibility |
-|------|-------|----------|-------------------|-----------|-------------|
-| A | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐⭐ |
-| B | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐ |
-| C | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐ |
+被忽略的维度:
+1. [Dimension]: [why it matters]
+2. [Dimension]: [why it matters]
+```
 
-> Each path's optimized question already incorporates all forcing constraints (stance, anti-consensus, trade-off, actionability, deep forcing). The Angle column shows the path's distinctive perspective from the standard vocabulary.
+**Summary mode**: Collapse the adversarial report below into one-line per path (credibility + key risk). User can say "expand" to see full details.
 
-## ⚔️ Adversarial Report
+```
+对抗审查（展开模式）:
 
-### Path A — Assumption Audit
-| Assumption | Fragility | Explanation |
-|-----------|-----------|-------------|
-| [Assumption 1] | 🟢/🟡/🔴 | [Why this judgment] |
-| [Assumption 2] | 🟢/🟡/🔴 | [Explanation] |
+路径 A:
+| 假设 | 脆弱度 | 说明 |
+|------|--------|------|
+| [Assumption] | [high/med/low] | [why] |
+最弱假设: [what] — [impact if overturned]
+反例: [counter-example]
+失效条件: 环境 [X] / 规模 [X] / 时间 [X]
 
-**Weakest assumption:** [What it is] — [How does the conclusion change if overturned?]
-
-**Counter-example:** [Historical/boundary/analogical counter-example]
-
-**Failure conditions:**
-- Environment: [What policy/market/tech change would invalidate this]
-- Scale: [At what scale does the conclusion reverse]
-- Time: [Credibility decay curve at 1/3/5 years]
-
-### Path B — Assumption Audit
-[Same structure]
-
-### Path C — Assumption Audit
-[Same structure]
-
-## 🔭 Dimensions You May Have Overlooked
-
-1. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
-2. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
+路径 B: [同上]
+路径 C: [同上]
 ```
 
 ### Phase 2: Selection Prompt
@@ -150,40 +137,42 @@ Use the **AskUserQuestion** tool to present clickable path options. Generate one
 **AskUserQuestion parameters:**
 - `question`: "选择一条路径，我会输出最终打磨好的问题"
 - `header`: "选择路径"
-- `options`: One per path (label = "Letter — angle tag", description = approach summary + credibility)
-- Last option: label "Combine", description "混搭多条路径元素，选择 Other 描述你想要的组合"
+- `options`: One per path (label = "Letter — angle tag", description = one-line summary + credibility)
+- Last option: label "组合", description "混搭多条路径元素，选择 Other 描述你想要的组合"
 
 **Fallback (if tool unavailable):**
 ```
-## Choose Your Path
+选择一条路径，我会输出最终打磨好的问题:
 
-- **A** — [one-line summary of path A's angle]
-- **B** — [one-line summary of path B's angle]
-- **C** — [one-line summary of path C's angle]
-- **Combine** — e.g., "A's angle + B's constraint" (max 3 paths)
+A — [one-line summary]
+B — [one-line summary]
+C — [one-line summary]
+组合 — 如"A的角度 + B的约束"（最多 3 条）
 
-If undecided: Path [X] has the highest credibility and broadest applicability.
+如果犹豫: 路径 [X] 可信度最高，适用范围最广。
 ```
 
 ### Phase 3: Final Output (after user selection)
 
 ```
-## ✅ Final Optimized Question
+已选择: [Path X / Combination description]
 
-**Selected:** [Path X / Combination description]
+优化后的问题:
+> [Full polished question — clean, ready to copy-paste into any AI]
 
-> [Full polished question — clean, no meta-commentary, ready to copy-paste into any AI]
+施压约束:
+- [Stance Constraint]
+- [Anti-Consensus Constraint]
+- [Trade-off Constraint]
+- [Actionability Constraint]
 
-**Embedded constraints:**
-- [Stance Constraint — what position was forced]
-- [Anti-Consensus Constraint — what mainstream view was challenged]
-- [Trade-off Constraint — what was sacrificed for what]
-- [Actionability Constraint — what concrete first step was demanded]
+适用边界: [under what conditions this works best]
+风险提示: [top risk]
+如果回答方向不对，追问: "[follow-up question]"
+```
 
-**Best used when:** [Applicability boundary]
-**Watch out for:** [Top risk]
-**If the answer feels off, pivot by asking:** "[Follow-up question]"
+Self-learning note: After outputting the final question, silently record user preference data and append optional feedback line:
 
----
+```
 拿到回答后，如果方向不对回复「方向偏了」；如果很好回复「很好」。
 ```

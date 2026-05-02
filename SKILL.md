@@ -427,15 +427,17 @@ If user replies with feedback, record it as a high-quality preference signal in 
 
 ## Output Formats
 
-> 📖 All output templates (Level 0~3) and adaptive output rules are in `references/output-templates.md`. Read that file before rendering output.
+> All output templates (Level 0~3) and adaptive output rules are in `references/output-templates.md`. Read that file before rendering output.
+
+**Level display (mandatory)**: Every output must start with the current Level on its own line: `[Level 0]` / `[Level 1]` / `[Level 2]` / `[Level 3]`. This lets the user know which level they're at and whether to upgrade. Each output should end with a hint: "说「升级」可进入 Level X。"
 
 **Level quick reference**:
 | Level | Name | What to Output |
 |-------|------|---------------|
-| **0** | Rapid Forcing | Cognitive Forcing Version + Consensus Level |
-| **1** | Light Optimization | Diagnosis + Optimized Question + Improvements |
-| **2** | Medium Forcing | Intent + Diagnosis + Forcing Version + Dimensions + Warning |
-| **3** | Deep Adversarial | Full template (default: summary mode, say "expand" for full) |
+| 0 | Rapid Forcing | Cognitive Forcing Version + Consensus Level |
+| 1 | Light Optimization | Diagnosis + Optimized Question + Improvements |
+| 2 | Medium Forcing | Intent + Diagnosis + Forcing Version + Dimensions + Warning |
+| 3 | Deep Adversarial | Full template (default: summary mode, say "expand" for full) |
 
 **Adaptive rules summary** (full details in `references/output-templates.md`):
 - **Summary mode**: Level 3 defaults to compact (Intent → Multi-Path table → Selection Prompt); say "expand" for full adversarial details
