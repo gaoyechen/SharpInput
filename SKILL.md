@@ -205,6 +205,8 @@ If no preference data found, proceed normally.
 
 **Goal: Identify the core intent of the user's question to determine which forcing strategy Stage 2 applies.**
 
+> ⚠️ **INTENT CLARITY RULE**: If you are not confident about the user's true intent, **STOP and ask**. Do NOT guess. Interrupt the flow, call AskUserQuestion to present guided intent options, wait for the user's response, then continue. Guessing intent leads to wrong forcing strategies and wasted optimization.
+
 Classify with a **primary + secondary** dual-label system:
 
 | Intent | Meaning | Typical Phrasing | Forcing Strategy |
@@ -221,6 +223,37 @@ Classify with a **primary + secondary** dual-label system:
   - ZH: "我识别到你的问题是 **Decision 类型**（做选择）。主要施压策略：后悔预判 + 杀手问题。"
 - If a secondary intent exists, show it too: "Primary: Decision, Secondary: Analyze" / "主意图: Decision, 次意图: Analyze"
 - **User can override**: If the user says "no, this is more like analysis" / "不对，这更像是分析" → switch forcing strategy.
+
+#### Intent Uncertainty — Interrupt and Ask (MANDATORY)
+
+**When intent is unclear, ambiguous, or could reasonably map to 2+ different intents, you MUST interrupt the flow and call AskUserQuestion.** Do NOT proceed with a guessed intent.
+
+**Triggers for interrupt** (any one is sufficient):
+- Input is too vague to confidently classify (e.g., "帮我看看这个" — 看什么？怎么看？)
+- Input could reasonably be two different intents (e.g., "这个方案怎么样" could be Analyze OR Decision)
+- Input lacks a clear verb or action word
+- Input is a fragment or incomplete thought
+- Multiple intents seem equally likely with no clear primary
+
+**When interrupting, use this AskUserQuestion pattern:**
+
+```json
+{"questions": [{"question": "你的核心需求是什么？我好用最合适的策略来优化", "header": "意图确认", "options": [
+  {"label": "🧠 理解原理", "description": "想搞懂某个概念、机制、底层逻辑"},
+  {"label": "⚖️ 帮我决策", "description": "面临选择，需要建议和权衡分析"},
+  {"label": "🔨 生成内容", "description": "需要代码、方案、文档等产出"},
+  {"label": "🔬 分析评估", "description": "已有方案/问题，需要诊断和评价"}
+]}]}
+```
+
+**After user selects an intent:**
+1. Record the selected intent as the primary intent
+2. Show: "已确认意图为 [selected intent]，继续优化。"
+3. Resume the flow from Stage 1 (skip re-classification)
+
+**Edge cases:**
+- If the user selects an intent that contradicts obvious signals (e.g., picks "理解原理" for "帮我写个登录页面"), note the mismatch but proceed with their choice
+- If the user provides custom text via "Other", re-classify based on their description and confirm
 
 **Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints.**
 
@@ -248,6 +281,8 @@ If the user declines, prioritize the primary intent and note the trade-off.
 ### Context Completion (After Intent Recognition, Before Stage 1)
 
 **Goal: Fill in critical information the user didn't provide, preventing mediocre output based on incomplete input.**
+
+> ⚠️ **NO-GUESS RULE**: Do NOT fabricate or assume missing context. If you cannot confidently infer a dimension (background, goal, scenario) from the user's input, **STOP and ask** via AskUserQuestion. A guess-based optimization produces generic, unhelpful output. Asking is always better than assuming.
 
 > 📖 **Reference**: For structuring the output format and audience targeting of context-inferred questions, see `references/prompt-patterns.md` → **CO-STAR Framework** (Context/Objective/Style/Tone/Audience/Response). Use the Audience and Response elements to sharpen the context completion output.
 
