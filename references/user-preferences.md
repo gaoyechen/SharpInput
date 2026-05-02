@@ -4,8 +4,13 @@ _This file is auto-maintained by SharpAsk's self-learning system. Do not edit ma
 
 ## Summary
 
-_No preference data yet. Preferences will be populated after your first interaction._
+- **Default level bias**: Level 3 (user selected A+C combination, indicating preference for deep adversarial analysis with multi-path combination)
+- **Angle preference**: `risk-first` + `minimalist` (后悔最小化 + 极简准则)
+- **Domain context**: 产品经理，日常工作=文档+原型+多标签页，预算约6000
+- **Combination preference**: Willing to combine paths (selected A+C, not single path)
 
 ## History
 
-_No records yet._
+| # | Date | Input Summary | Level | Intent | Selected Path | Feedback |
+|---|------|--------------|-------|--------|---------------|----------|
+| 1 | 2026-05-02 | 战66 vs 星Book14 笔记本选购（产品经理） | 3 | Decision+Explore | A+C (risk-first + minimalist) | 很好 |

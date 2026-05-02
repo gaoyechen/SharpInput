@@ -100,9 +100,80 @@ After classification, assign a **confidence score** (High / Medium / Low):
 
 - **High confidence**: Question clearly matches one signal category → proceed directly
 - **Medium confidence**: Question matches multiple categories or has ambiguous signals → state your classification and proceed, but note: "If this feels wrong, say 'upgrade' to go deeper." / "如果感觉不对，说'升级'可以深入分析。"
-- **Low confidence**: No clear signal or contradictory signals → **ask the user before proceeding**:
-  > "I'm not sure how to classify this. Is this more of a [option A] or [option B]? Or just say the level you want: Level 0/1/2/3."
-  > "我不确定如何分类这个问题。你觉得更偏向 [选项 A] 还是 [选项 B]？或者直接说等级：Level 0/1/2/3。"
+- **Low confidence**: No clear signal or contradictory signals → **use AskUserQuestion to present an interactive selection dialog**.
+
+**Low Confidence Dialog (AskUserQuestion):**
+
+When confidence is low, use the **AskUserQuestion** tool to present clickable options for the user to clarify their intent. This replaces the text-based prompt with an interactive dialog.
+
+**Standard options for low confidence:**
+- 2-3 most likely intent categories based on signal analysis
+- A "Level override" option for direct level selection
+- An "Other" option for custom input
+
+**Example AskUserQuestion call:**
+```
+question: "我不确定如何分类你的问题，请选择最符合的意图"
+header: "意图确认"
+options:
+  - label: "选项 A"
+    description: "适用于 [场景描述]"
+  - label: "选项 B"
+    description: "适用于 [场景描述]"
+  - label: "直接指定等级"
+    description: "选择 Level 0/1/2/3 进入对应优化模式"
+```
+
+**Domain-specific clarification dialogs:**
+
+For certain common ambiguous scenarios, use specialized dialog options:
+
+1. **Purchase/Budget decisions** (when input mentions buying, pricing, cost, or budget but range is unclear):
+   ```
+   question: "你的预算范围是？"
+   header: "预算确认"
+   options:
+     - label: "1000-2000 元"
+       description: "入门级选择"
+     - label: "2000-5000 元"
+       description: "中端选择"
+     - label: "5000-9000 元"
+       description: "高端选择"
+     - label: "其他"
+       description: "自定义预算范围，选择 Other 输入具体金额"
+   ```
+
+2. **Technical vs Non-technical** (when domain is unclear):
+   ```
+   question: "你的问题更偏向哪个领域？"
+   header: "领域确认"
+   options:
+     - label: "技术实现"
+       description: "代码、架构、工程相关"
+     - label: "产品/业务"
+       description: "策略、增长、用户体验相关"
+     - label: "个人决策"
+       description: "职业、生活、学习相关"
+   ```
+
+3. **Scope clarification** (when problem scale is ambiguous):
+   ```
+   question: "你的问题规模是？"
+   header: "规模确认"
+   options:
+     - label: "具体问题"
+       description: "单一、明确的问题点"
+     - label: "系统性问题"
+       description: "涉及多个关联因素"
+     - label: "战略性问题"
+       description: "长期、大方向的决策"
+   ```
+
+**Dialog selection rules:**
+- If user picks a predefined option → proceed with that intent/level
+- If user picks "Other" → use their custom input to re-classify
+- If user provides budget/price info → record as context for the optimization
+- Always match the dialog language to the user's language (Chinese in → Chinese dialog)
 
 **User override always takes priority**: If the user says "deep mode", "Level 3", "just optimize it", "深度模式", "深度分析", "Level 3", "施压一下", or any explicit level instruction, skip the decision tree and go directly to that level.
 
@@ -186,11 +257,37 @@ Infer missing information across three dimensions:
 | **Goal** | What does the user actually want to achieve? Short-term or long-term? | From question intent and implicit needs |
 | **Scenario** | What environment? Team size? Time constraints? | From question scope and constraint clues |
 
-**Output style: Inference + Confirmation**
+**Output style: Interactive Dialog + Conditional Framework**
 
-Show the inference in one sentence and ask the user to confirm or correct:
+When critical information is missing, use **AskUserQuestion** to present clickable options instead of open-ended text questions. This reduces friction and guides the user toward useful answers.
 
-> "I'm inferring your background is [X], you want to solve [Y], in [Z] scenario — is that right? Correct me if I'm off."
+**Interactive dialog selection by ambiguity type:**
+
+| Ambiguity Type | Detection Signal | Dialog Options |
+|----------------|-----------------|----------------|
+| **Budget/Price** | "买", "购买", "预算", "价格", "多少钱", "cost", "budget", "price", "afford" | 3 price tiers + "Other" (custom) |
+| **Scope/Scale** | "做一个", "方案", "系统", "项目", "规模", "build", "system", "project" | Small / Medium / Large + "Other" |
+| **Timeline** | "多久", "什么时候", "时间", "deadline", "when", "how long", "timeline" | 1周内 / 1个月内 / 3个月+ / 其他 |
+| **Audience** | "给谁看", "写给", "面向", "for", "audience", "readers" | Internal / Client / Public / Other |
+| **Tech Stack** | "用什么", "框架", "技术", "language", "framework", "stack" | 提供常见选项 + "Other" |
+| **Role/Perspective** | "从谁的角度", "角色", "perspective", "role", "standpoint" | 技术 / 产品 / 管理层 / 用户 / Other |
+
+**AskUserQuestion call pattern:**
+```
+question: "[Chinese or English question matching user's language]"
+header: "[Short label, 2-4 chars]"
+options:
+  - label: "[Option 1]"
+    description: "[What this option means]"
+  - label: "[Option 2]"
+    description: "[What this option means]"
+  - label: "[Option 3]"
+    description: "[What this option means]"
+  - label: "其他"
+    description: "自定义，选择 Other 输入具体值"
+```
+
+**Fallback**: If AskUserQuestion tool is not available, use the text-based inference + confirmation pattern:
 > "我推测你的背景是 [X]，想解决 [Y]，在 [Z] 场景下——对吗？说偏了帮我纠正。"
 
 **Rules**:
@@ -198,10 +295,12 @@ Show the inference in one sentence and ask the user to confirm or correct:
 - If the question already has sufficient information (background, goal, and scenario are all clear), skip this step and tell the user:
   - EN: "Question has sufficient context, proceeding directly to optimization."
   - ZH: "问题信息充分，直接进入优化。"
-- After the user confirms or corrects, proceed to Stage 1
+- After the user selects or corrects, proceed to Stage 1
 - Level 0 (rapid forcing) skips this step; Level 1 may skip it unless information is clearly insufficient
 - **Language matching**: All user-facing messages in this flow must match the user's language (Chinese in → Chinese out, English in → English out)
 - **Conditional answer for vague inputs**: When information is clearly insufficient (Level 1, vague input), do NOT only ask clarifying questions. Instead, provide a **conditional framework** alongside the questions: "If your situation is [X], my suggestion is [Y]. If it's [A], then [B]. Confirm which applies to you." This ensures the user gets directional value even without answering all questions.
+- **Dialog vs text**: Prefer AskUserQuestion for common quantifiable parameters (budget, timeline, scope, tech stack). Use text fallback only for open-ended or nuanced context that can't be pre-defined.
+- **Combine with Gate**: If Gate's Step 3 already triggered a dialog (e.g., budget dialog for low-confidence purchase question), do NOT ask the same question again in Context Completion. Use the Gate dialog result as input.
 
 ---
 
@@ -356,23 +455,58 @@ Based on three rounds of review, output a credibility score for each path:
 
 > 📖 **Reference**: Verify the final question meets `references/prompt-patterns.md` → **5 Signals of a High-Quality Question**.
 
-#### Step 1: Present Selection Prompt
+Level 3 output follows two phases: **Phase 1** (Analysis + Paths + Selection) in one go, **Phase 2** (Final Output) after user selection.
 
-After showing multi-path table and adversarial report, use the **AskUserQuestion** tool to present an interactive selection prompt. This gives users clickable options instead of requiring text input.
+#### Step 1: Output Phase 1 — Analysis + Paths + Selection
+
+Output in this **strict order**:
+
+```
+[Level 3]
+
+诊断: [2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
+
+意图: [Explain/Decision/Generate/Analyze/Explore]（如有次意图也列出）
+施压策略: [primary strategy] + [secondary supplement]
+
+路径 A — [angle tag]:
+> [Full optimized question for path A, self-contained, ready to copy-paste]
+可信度: [⭐⭐⭐⭐⭐ ~ ⭐] — [one-line key risk or weakest assumption]
+
+路径 B — [angle tag]:
+> [Full optimized question for path B, self-contained, ready to copy-paste]
+可信度: [⭐⭐⭐⭐⭐ ~ ⭐] — [one-line key risk or weakest assumption]
+
+路径 C — [angle tag]:
+> [Full optimized question for path C, self-contained, ready to copy-paste]
+可信度: [⭐⭐⭐⭐⭐ ~ ⭐] — [one-line key risk or weakest assumption]
+
+被忽略的维度:
+1. [Dimension]: [why it matters]
+2. [Dimension]: [why it matters]
+```
+
+**Key rules:**
+- **No comparison table.** Each path is presented independently with its own full optimized question.
+- Each path includes its own credibility score + one-line key risk.
+- The full optimized question under each path is self-contained and ready to copy-paste.
+- Paths are ordered by credibility (highest first).
+
+**Immediately after** the text output, present the **AskUserQuestion multi-select dialog**:
 
 **AskUserQuestion parameters:**
-- `question`: "选择一条路径，我会输出最终打磨好的问题" / "Pick a path — I'll produce a final polished question"
-- `header`: "选择路径" / "Path"
-- `options`: Generate one option per path from the multi-path table. Each option should include:
-  - `label`: Path letter + angle tag (e.g., "A — risk-first")
-  - `description`: One-line summary of the path's approach + credibility score
-- Place the **highest-credibility path first** (this serves as the recommendation hint)
-- The last option should be `label: "组合/Combine"` with description explaining that the user can describe a custom combination via "Other"
+- `question`: "选择路径（可多选），我会输出最终打磨好的问题"
+- `header`: "选择路径"
+- `multiSelect`: **true** — user can select multiple paths to combine
+- `options`: One per path (label = "Letter — angle tag", description = one-line credibility + key approach)
+- **No "组合/Combine" option needed** — multi-select natively handles combination
+- Place the **highest-credibility path first** (serves as recommendation hint)
 
-**Example AskUserQuestion call (3 paths):**
+**Example AskUserQuestion call:**
 ```
-question: "选择一条路径，我会输出最终打磨好的问题"
+question: "选择路径（可多选），我会输出最终打磨好的问题"
 header: "选择路径"
+multiSelect: true
 options:
   - label: "A — risk-first"
     description: "聚焦风险和下行分析，可信度 ⭐⭐⭐⭐⭐"
@@ -380,41 +514,72 @@ options:
     description: "寻找反直觉答案，可信度 ⭐⭐⭐⭐"
   - label: "C — time-horizon"
     description: "拉到 3-5 年后审视，可信度 ⭐⭐⭐"
-  - label: "组合"
-    description: "混搭多条路径元素，选择 Other 描述你想要的组合"
 ```
 
 **Fallback**: If AskUserQuestion tool is not available, fall back to text-based prompt:
-> **ZH:** "选择一条路径（A / B / C），可以组合元素（如'A的切入角度 + B的约束条件'，最多 3 条），或描述你想要的 — 我会输出最终打磨好的问题。"
+> **ZH:** "选择路径（可多选），我会输出最终打磨好的问题。如果犹豫，路径 [X] 可信度最高。可组合多条（如 'A + B'）。"
 >
-> **EN:** "Pick a path (A / B / C), combine elements (e.g., 'A's angle + B's constraint', max 3 paths), or describe what you want — I'll produce a final polished question."
+> **EN:** "Select paths (multi-select OK). If unsure, Path [X] has the highest credibility. Combine multiple (e.g., 'A + B')."
 
 #### Step 2: Handle User Response
 
 | User Response | Action |
 |--------------|--------|
-| Picks one path (e.g., "B") | Use that path's optimized question as base |
-| Combines elements (e.g., "A角度 + B约束", up to 3 paths) | Merge specified elements; max 3 paths combinable; flag conflicts if they arise |
+| Selects one path (e.g., only "B") | Use that path's optimized question as base |
+| Selects multiple paths (e.g., "A" + "B") | Merge elements from selected paths (see combination mechanics below) |
 | Describes preference (e.g., "更偏风险视角") | Use closest path as base, adjust per preference |
-| Says "你选" / "your pick" | Apply recommendation hint from Step 1 |
+| Says "你选" / "your pick" | Apply recommendation hint (highest-credibility path) |
 | Says "stop" / "直接给问题" | Output highest-credibility path immediately |
 
-**Combination mechanics** (max 3 paths):
-- **2 paths**: Use the higher-credibility path as base, inject the other's specified elements
-- **3 paths (all)**: Use the highest-credibility path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。继续？"
+**Combination mechanics** (multi-select):
+- **2 paths selected**: Use the higher-credibility path as base, inject the other's specified elements
+- **3 paths selected (all)**: Use the highest-credibility path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。"
 - **Conflict detection**: If combined elements contradict, flag it and suggest resolution
 - After merging, run through the 5 Signals quality gate
 
-#### Step 3: Produce Final Polished Output
+#### Step 3: Output Phase 2 — Final Polished Output
 
-After user selection, output:
+**Single path selected:**
+```
+已选择: [Path X — angle tag]
 
-- **Selected/Combined Path**: brief description
-- **Final Optimized Question**: clean, no meta-commentary, ready to copy-paste
-- **Embedded constraints**: 1-3 bullet points on what forcing constraints are embedded
-- **Best used when**: applicability boundary
-- **Watch out for**: top risk
-- **If the answer feels off, pivot by asking**: follow-up question
+优化后的问题:
+> [Full polished question — clean, ready to copy-paste into any AI]
+
+施压约束:
+- [Stance Constraint]
+- [Anti-Consensus Constraint]
+- [Trade-off Constraint]
+- [Actionability Constraint]
+
+适用边界: [under what conditions this works best]
+风险提示: [top risk]
+如果回答方向不对，追问: "[follow-up question]"
+
+优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
+```
+
+**Multiple paths selected (combination):**
+```
+已组合: [Path X + Path Y] — [brief description of what was merged]
+
+融合策略: 以 [Path X] 为基础，注入 [Path Y] 的 [specific elements]
+
+优化后的问题:
+> [Full polished question — merged from selected paths, clean, ready to copy-paste]
+
+施压约束:
+- [Stance Constraint]
+- [Anti-Consensus Constraint]
+- [Trade-off Constraint]
+- [Actionability Constraint]
+
+适用边界: [under what conditions this works best]
+风险提示: [top risk]
+如果回答方向不对，追问: "[follow-up question]"
+
+优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
+```
 
 Quality gate: before outputting, check against 5 Signals (clear success criteria, constraints present, context provided, output format specified, room for exploration). Add any missing signal.
 
@@ -455,10 +620,10 @@ If user replies with feedback, record it as a high-quality preference signal in 
 | 0 | Rapid Forcing | Cognitive Forcing Version + Consensus Level |
 | 1 | Light Optimization | Diagnosis + Optimized Question + Improvements |
 | 2 | Medium Forcing | Intent + Diagnosis + Forcing Version + Dimensions + Warning |
-| 3 | Deep Adversarial | Full template (default: summary mode, say "expand" for full) |
+| 3 | Deep Adversarial | 诊断 → 意图 → 路径A/B/C（独立展示，含完整问题+可信度）→ 被忽略的维度 → 多选对话框 |
 
 **Adaptive rules summary** (full details in `references/output-templates.md`):
-- **Summary mode**: Level 3 defaults to compact (Intent → Multi-Path table → Selection Prompt); say "expand" for full adversarial details
+- **Level 3 structure**: 诊断 → 意图 → 路径A/B/C（每条路径独立展示完整优化问题+可信度，不做对比表）→ 被忽略的维度 → AskUserQuestion 多选对话框
 - **Progressive disclosure**: Say "stop" or "just give me the question" at any stage
 - **Language adaptation**: Placeholders follow user's language
 - **Focus mode**: Specify which sections to show
