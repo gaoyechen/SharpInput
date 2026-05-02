@@ -145,17 +145,24 @@ Level 3 has three output phases: **Phase 1** (Analysis) is shown automatically, 
 
 ### Phase 2: Selection Prompt
 
-```
-## 🎯 Choose Your Path
+Use the **AskUserQuestion** tool to present clickable path options. Generate one option per path from the multi-path table, with the highest-credibility path listed first. Include a "Combine" option for custom combinations.
 
-Pick a path, combine elements, or describe what you prefer:
+**AskUserQuestion parameters:**
+- `question`: "选择一条路径，我会输出最终打磨好的问题"
+- `header`: "选择路径"
+- `options`: One per path (label = "Letter — angle tag", description = approach summary + credibility)
+- Last option: label "Combine", description "混搭多条路径元素，选择 Other 描述你想要的组合"
+
+**Fallback (if tool unavailable):**
+```
+## Choose Your Path
 
 - **A** — [one-line summary of path A's angle]
 - **B** — [one-line summary of path B's angle]
 - **C** — [one-line summary of path C's angle]
 - **Combine** — e.g., "A's angle + B's constraint" (max 3 paths)
 
-💡 If undecided: Path [X] has the highest credibility ([score]) and broadest applicability.
+If undecided: Path [X] has the highest credibility and broadest applicability.
 ```
 
 ### Phase 3: Final Output (after user selection)
