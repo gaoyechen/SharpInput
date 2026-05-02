@@ -14,3 +14,4 @@ _This file is auto-maintained by SharpAsk's self-learning system. Do not edit ma
 | # | Date | Input Summary | Level | Intent | Selected Path | Feedback |
 |---|------|--------------|-------|--------|---------------|----------|
 | 1 | 2026-05-02 | 战66 vs 星Book14 笔记本选购（产品经理） | 3 | Decision+Explore | A+C (risk-first + minimalist) | 很好 |
+| 2 | 2026-05-02 | ThinkBook 14+ 2026 系统选择（Win10 LTSC vs Win11） | 3 | Decision+Analyze | C (minimalist) | — |

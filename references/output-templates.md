@@ -1,6 +1,8 @@
 # Output Templates
 
-Output templates for all SharpInput forcing levels. Read this file when rendering output.
+Output templates for all SharpInput forcing levels. Read this file before rendering output.
+
+> ⚠️ **GOLDEN RULE**: All selection prompts (path selection, intent clarification, parameter collection) **MUST use the `AskUserQuestion` tool**. **NEVER** output text-based "A / B / C" options — they are NOT clickable. Only a tool call produces an interactive dialog.
 
 ---
 

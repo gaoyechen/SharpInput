@@ -17,6 +17,8 @@ agent_created: true
 
 # SharpInput — AI Input Optimizer
 
+> ⚠️ **GOLDEN RULE — Interactive Dialogs**: When this skill instructs you to present options to the user (for intent clarification, parameter collection, or path selection), you **MUST call the `AskUserQuestion` tool**. **NEVER** output text-based options like "A / B / C" or bullet-list choices — these are **NOT interactive** and the user **cannot click them**. The only acceptable way to present choices is via the `AskUserQuestion` tool call. **This rule applies everywhere in this skill without exception.**
+
 Through scene gating → intent recognition → context completion → problem reframing →
 cognitive forcing → divergent thinking → adversarial loop → convergent synthesis,
 SharpInput sharpens any user input — questions, problem statements, requirements, ideas, plans —
@@ -100,11 +102,11 @@ After classification, assign a **confidence score** (High / Medium / Low):
 
 - **High confidence**: Question clearly matches one signal category → proceed directly
 - **Medium confidence**: Question matches multiple categories or has ambiguous signals → state your classification and proceed, but note: "If this feels wrong, say 'upgrade' to go deeper." / "如果感觉不对，说'升级'可以深入分析。"
-- **Low confidence**: No clear signal or contradictory signals → **use AskUserQuestion to present an interactive selection dialog**.
+- **Low confidence**: No clear signal or contradictory signals → **MUST call the AskUserQuestion tool (not output text options)**.
 
-**Low Confidence Dialog (AskUserQuestion):**
+**⚠️ CRITICAL — Low Confidence Dialog (AskUserQuestion REQUIRED):**
 
-When confidence is low, use the **AskUserQuestion** tool to present clickable options for the user to clarify their intent. This replaces the text-based prompt with an interactive dialog.
+When confidence is low, you **MUST call the AskUserQuestion tool** to present clickable options. **DO NOT** output text-based options, bullet lists, or letter choices — these are NOT interactive and the user cannot click them. The only acceptable format is a tool call to AskUserQuestion. If you output "A / B / C" as text instead of calling AskUserQuestion, you have failed this step.
 
 **Standard options for low confidence:**
 - 2-3 most likely intent categories based on signal analysis
@@ -259,7 +261,7 @@ Infer missing information across three dimensions:
 
 **Output style: Interactive Dialog + Conditional Framework**
 
-When critical information is missing, use **AskUserQuestion** to present clickable options instead of open-ended text questions. This reduces friction and guides the user toward useful answers.
+When critical information is missing, you **MUST call the AskUserQuestion tool** to present clickable options. **DO NOT** output text-based "A / B / C" options — the user cannot click them. Only a tool call to AskUserQuestion produces an interactive dialog.
 
 **Interactive dialog selection by ambiguity type:**
 
@@ -492,7 +494,7 @@ Output in this **strict order**:
 - The full optimized question under each path is self-contained and ready to copy-paste.
 - Paths are ordered by credibility (highest first).
 
-**Immediately after** the text output, present the **AskUserQuestion multi-select dialog**:
+**⚠️ CRITICAL — Immediately after** the text output, you **MUST call the AskUserQuestion tool** with `multiSelect: true`. **DO NOT** output text-based "A / B / C" options — these are NOT clickable. The user needs an interactive dialog to select paths. If you output text options instead of calling AskUserQuestion, you have failed this step.
 
 **AskUserQuestion parameters:**
 - `question`: "选择路径（可多选），我会输出最终打磨好的问题"
