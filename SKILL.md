@@ -1,44 +1,47 @@
 ---
-name: question-optimizer
+name: SharpInput
 description: >
-  Optimize user questions through deep cognitive self-checking, multi-dimensional reframing,
-  and anti-consensus detection to improve AI answer quality.
-  Triggers: "optimize this question", "how to ask better", "help me organize",
-  "I want to ask AI a question", pasting a question asking "is this good enough",
-  or any discussion about question quality.
-  中文触发词: "优化这个问题", "帮我优化问题", "这个问题怎么问更好",
-  "怎么问才能得到更好的回答", "帮我组织一下问题", "我想问AI一个问题",
-  "这样问行不行", "问题质量", "帮我改一下这个问题", "优化提问",
-  "怎么提问", "这个问题问得好不好", "帮我润色一下问题".
+  Optimize any user input (questions, statements, plans, ideas, requirements) through
+  deep cognitive self-checking, multi-dimensional reframing, and anti-consensus detection
+  to force AI outputs with genuine opinions, clear positions, and real insight —
+  not "correct but useless" platitudes.
+  Triggers: "optimize this", "how to ask better", "help me organize", "is this good enough",
+  "how should I phrase this", "make this better", any discussion about input/question quality,
+  pasting content asking for optimization, or any non-trivial input that benefits from sharpening.
+  中文触发词: "优化这个问题", "帮我优化", "怎么问更好", "帮我组织一下",
+  "这样问行不行", "这样表述好不好", "帮我改一下", "优化提问", "优化输入",
+  "帮我理清思路", "这个问题问得好不好", "帮我润色", "优化一下",
+  "这样说对不对", "帮我理一下", "我这样说合适吗", "帮我完善一下".
 agent_created: true
 ---
 
-# SharpAsk — AI Question Optimizer
+# SharpInput — AI Input Optimizer
 
 Through scene gating → intent recognition → context completion → problem reframing →
 cognitive forcing → divergent thinking → adversarial loop → convergent synthesis,
-SharpAsk ensures AI outputs answers with genuine opinions, clear positions, and real insight —
+SharpInput sharpens any user input — questions, problem statements, requirements, ideas, plans —
+into optimized versions that force AI to produce genuine opinions, clear positions, and real insight,
 not "correct but useless" platitudes.
 
 ---
 
 ## Core Flow
 
-Upon receiving a user question, execute in the following order:
+Upon receiving any user input, execute in the following order:
 
 ```
-Gate (Scene Filter) → Intent Recognition + Context Completion → Stage 1~5 → Output
+Gate (Scene Filter) → Memory Load → Intent Recognition + Context Completion → Stage 1~5 → Output
 ```
 
-Gate determines the path, intent recognition selects the forcing strategy, and context completion ensures sufficient information.
+Gate determines the path, memory load personalizes the flow from past preferences, intent recognition selects the forcing strategy, and context completion ensures sufficient information.
 
 ---
 
 ### Gate: Scene Filter (Executes First)
 
-Before entering any stage, classify the question through a **signal detection decision tree**. Execute steps in order; stop at the first definitive match.
+Before entering any stage, classify the user input through a **signal detection decision tree**. Execute steps in order; stop at the first definitive match.
 
-#### Step 1: Signal Detection — Scan for these signals in the question
+#### Step 1: Signal Detection — Scan for these signals in the input
 
 | Signal | Detection Keywords / Patterns | Examples |
 |--------|------------------------------|----------|
@@ -50,14 +53,18 @@ Before entering any stage, classify the question through a **signal detection de
 | **Analysis signal** | "analyze", "evaluate", "how is this plan", "why would X fail", "review"; "分析", "评估", "这个方案怎么样", "为什么会失败", "评价" | "Analyze this architecture" / "分析一下这个架构" |
 | **Exploration signal** | "what directions", "what else", "any other options", "brainstorm", "explore"; "有什么方向", "还有什么", "其他选择", "头脑风暴", "探索" | "What are my options" / "还有什么方向" |
 | **Strategy signal** | "how should I approach", "long-term", "roadmap", "priority", "resource allocation"; "怎么规划", "长期", "路线图", "优先级", "资源分配" | "How should I scale my team" / "怎么规划团队扩张" |
+| **Problem statement** | Describes a current situation/problem without asking a question; "转化率下降", "用户流失", "性能瓶颈", "团队效率低"; "conversion rate is dropping", "users are churning" | "我们的转化率一直在下降" / "Our conversion rate keeps declining" |
+| **Requirement** | Describes what needs to be built/done; "帮我设计", "帮我做一个", "需要实现", "我想要一个"; "I need a", "build me", "design a", "create a" | "帮我设计一个用户增长方案" / "I need a user growth strategy" |
+| **Idea / proposal** | Presents an idea or opinion to validate; "我觉得", "我的想法是", "我想试试", "方案是"; "I think", "my idea is", "what if we", "proposal" | "我觉得应该用微服务重构" / "I think we should refactor to microservices" |
+| **Plan review** | Shares a plan or document for feedback; "这是我的方案", "帮我看看", "以下是我的计划"; "here's my plan", "review this", "check my approach" | "这是我的技术方案，帮我看看" / "Here's my technical plan, review it" |
 
 #### Step 2: Decision Tree
 
 ```
-Question received
+Input received
   │
   ├─ Has Factual lookup OR Debug/Formatting signal?
-  │   └─ YES → 🟢 Quick Execution: Answer directly. Skip SharpAsk entirely.
+  │   └─ YES → 🟢 Quick Execution: Answer directly. Skip SharpInput entirely.
   │
   ├─ Has Comparison/Decision/Analysis/Exploration/Strategy signal?
   │   ├─ Only 1 signal, no specific constraints (who/what/where/when)?
@@ -66,6 +73,14 @@ Question received
   │   │   └─ 🔴 Level 2 (Medium Forcing): Has context, needs stance
   │   └─ 2+ signals OR contains "trade-off"/"risk"/"long-term"/"strategic" / "权衡"/"风险"/"长期"/"战略"?
   │       └─ 🔴 Level 3 (Deep Adversarial): Complex decision, full analysis
+  │
+  ├─ Has Problem statement / Requirement / Idea / Plan review signal?
+  │   ├─ Short, vague statement with no context?
+  │   │   └─ 🟡 Level 1 (Light Optimization): Needs sharpening and context
+  │   ├─ Statement with some context but missing goals or constraints?
+  │   │   └─ 🔴 Level 2 (Medium Forcing): Has substance, needs framing
+  │   └─ Detailed plan/idea/proposal that would benefit from adversarial review?
+  │       └─ 🔴 Level 3 (Deep Adversarial): Full analysis with multi-path alternatives
   │
   └─ No clear signal detected
       └─ 🟡 Level 1 by default. Inform user:
@@ -84,6 +99,26 @@ After classification, assign a **confidence score** (High / Medium / Low):
   > "我不确定如何分类这个问题。你觉得更偏向 [选项 A] 还是 [选项 B]？或者直接说等级：Level 0/1/2/3。"
 
 **User override always takes priority**: If the user says "deep mode", "Level 3", "just optimize it", "深度模式", "深度分析", "Level 3", "施压一下", or any explicit level instruction, skip the decision tree and go directly to that level.
+
+---
+
+### Memory Load (After Gate, Before Intent Recognition)
+
+> 📖 **Reference**: Full memory system spec in `references/self-learning.md`. Preference data stored in `references/user-preferences.md`.
+
+Read `references/user-preferences.md`. If preference data exists, silently apply:
+
+| Preference | How to Apply |
+|-----------|-------------|
+| **Default level bias** | If user historically prefers Level 3, when Gate classifies Level 1/2, suggest: "根据历史偏好建议 Level 3，说'升级'即可" |
+| **Angle preference** | In Stage 3, prioritize generating paths matching user's preferred angle tags |
+| **Forcing strategy** | Reduce priority of strategies user consistently skips |
+| **Recommendation bias** | In Stage 5 selection prompt, recommend the path matching user's preference |
+| **Domain context** | Use known domain to improve Context Completion inference accuracy |
+
+If no preference data found, proceed normally.
+
+**Fully silent**: Do NOT inform the user that preferences are being applied. The effect is visible in recommendations; the mechanism is invisible. Only explain if the user asks "why do you recommend this?"
 
 ---
 
@@ -239,6 +274,25 @@ Generate 2-3 different approaches, each internally consistent:
 - Each approach must incorporate Stage 2's cognitive forcing constraints
 - Output an optimized question version for each approach
 
+**Path presentation**: Label each approach as Path A / B / C. Each path entry must include:
+- A one-sentence **approach label** (what makes this path distinct)
+- The full **optimized question** (self-contained, ready to use)
+- An **angle tag** from the standard vocabulary (see below) for combination reference
+
+**Standard angle vocabulary** (pick the closest fit):
+
+| Angle Tag | Meaning | When to Use |
+|-----------|---------|-------------|
+| `risk-first` | Focus on what could go wrong, downside analysis | Decision, Analyze intents |
+| `constraint-challenge` | Challenge the question's own premises | Explain, Analyze intents |
+| `counter-intuitive` | Seek the non-obvious answer | Explain, Explore intents |
+| `minimalist` | Strip to essentials, "one thing only" | Generate, Decision intents |
+| `adversarial` | Argue against the obvious direction | Explore, Decision intents |
+| `time-horizon` | Shift perspective to 3-5 years out | Strategy, Decision intents |
+| `role-reversal` | Answer from an unexpected stakeholder's view | All intents |
+
+> 📖 Output format: see `references/output-templates.md` → Level 3 → Multi-Path Comparison.
+
 ---
 
 ### Stage 4: Adversarial Loop 🔥 Credibility Guard
@@ -287,19 +341,65 @@ Based on three rounds of review, output a credibility score for each path:
 
 ### Stage 5: Convergent Synthesis
 
-**Goal: From "multiple possibilities" → "executable conclusion."**
+**Goal: From "multiple possibilities" → user-selected, polished, copy-paste-ready question.**
 
-> 📖 **Reference**: Before finalizing the output, verify it meets the quality bar in `references/prompt-patterns.md` → **5 Signals of a High-Quality Question** (clear success criteria, constraints present, context provided, output format specified, room for exploration). Each signal the optimized question satisfies = one quality point.
+> 📖 **Reference**: Verify the final question meets `references/prompt-patterns.md` → **5 Signals of a High-Quality Question**.
 
-Based on Stage 4's adversarial review results, select the optimal path. Must include:
+#### Step 1: Present Selection Prompt
 
-| Output Item | Description |
-|------------|-------------|
-| **Recommended option** | Only one, with clear selection rationale |
-| **Credibility** | From Stage 4's score |
-| **Applicability boundary** | Under what conditions this option holds |
-| **Risk warning** | The top 1-2 risks |
-| **Exit strategy** | "If you find [some condition] doesn't hold, immediately pivot to [alternative option]" |
+After showing multi-path table and adversarial report, present a selection prompt:
+
+> **ZH:** "选择一条路径（A / B / C），可以组合元素（如'A的切入角度 + B的约束条件'，最多 3 条），或描述你想要的 — 我会输出最终打磨好的问题。"
+>
+> **EN:** "Pick a path (A / B / C), combine elements (e.g., 'A's angle + B's constraint', max 3 paths), or describe what you want — I'll produce a final polished question."
+
+Include a recommendation hint (biased by user preferences if available):
+> **ZH:** "如果犹豫：路径 X 可信度最高（⭐⭐⭐⭐⭐），适用范围最广。"
+>
+> **EN:** "If undecided: Path X has the highest credibility (⭐⭐⭐⭐⭐) and the broadest applicability."
+
+#### Step 2: Handle User Response
+
+| User Response | Action |
+|--------------|--------|
+| Picks one path (e.g., "B") | Use that path's optimized question as base |
+| Combines elements (e.g., "A角度 + B约束", up to 3 paths) | Merge specified elements; max 3 paths combinable; flag conflicts if they arise |
+| Describes preference (e.g., "更偏风险视角") | Use closest path as base, adjust per preference |
+| Says "你选" / "your pick" | Apply recommendation hint from Step 1 |
+| Says "stop" / "直接给问题" | Output highest-credibility path immediately |
+
+**Combination mechanics** (max 3 paths):
+- **2 paths**: Use the higher-credibility path as base, inject the other's specified elements
+- **3 paths (all)**: Use the highest-credibility path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。继续？"
+- **Conflict detection**: If combined elements contradict, flag it and suggest resolution
+- After merging, run through the 5 Signals quality gate
+
+#### Step 3: Produce Final Polished Output
+
+After user selection, output:
+
+- **Selected/Combined Path**: brief description
+- **Final Optimized Question**: clean, no meta-commentary, ready to copy-paste
+- **Embedded constraints**: 1-3 bullet points on what forcing constraints are embedded
+- **Best used when**: applicability boundary
+- **Watch out for**: top risk
+- **If the answer feels off, pivot by asking**: follow-up question
+
+Quality gate: before outputting, check against 5 Signals (clear success criteria, constraints present, context provided, output format specified, room for exploration). Add any missing signal.
+
+#### Step 4: Record User Preference + Optional Feedback
+
+After outputting the final question, execute two actions:
+
+**A. Silent preference recording** (always, no user interaction):
+Record this session's data to `references/user-preferences.md`. See `references/self-learning.md` for full rules.
+
+**B. Optional feedback collection** (append to the output):
+> **ZH:** "拿到回答后，如果方向不对回复「方向偏了」我会调整；如果很好回复「很好」我会记住这个模式。"
+>
+> **EN:** "After getting the answer, reply 'off track' if the direction was wrong, or 'great' if it worked well — I'll remember the pattern."
+
+If user replies with feedback, record it as a high-quality preference signal in `references/user-preferences.md`.
 
 ---
 
@@ -316,7 +416,7 @@ Based on Stage 4's adversarial review results, select the optimal path. Must inc
 | **3** | Deep Adversarial | Full template (default: summary mode, say "expand" for full) |
 
 **Adaptive rules summary** (full details in `references/output-templates.md`):
-- **Summary mode**: Level 3 defaults to compact (4 core sections); say "expand" for full
+- **Summary mode**: Level 3 defaults to compact (Intent → Multi-Path table → Selection Prompt); say "expand" for full adversarial details
 - **Progressive disclosure**: Say "stop" or "just give me the question" at any stage
 - **Language adaptation**: Placeholders follow user's language
 - **Focus mode**: Specify which sections to show
@@ -325,7 +425,7 @@ Based on Stage 4's adversarial review results, select the optimal path. Must inc
 
 ## Boundary Rules
 
-1. **Gate first** — Quick execution questions get direct answers, no SharpAsk flow, zero friction cost
+1. **Gate first** — Quick execution questions get direct answers, no SharpInput flow, zero friction cost
 2. **Transparent intent** — Show the user the intent recognition result and forcing strategy; user can override anytime
 3. **No fabrication in context inference** — Inference must be based on clues in the question; skip if information is sufficient
 4. **Don't change core intent** — Optimize the way of asking, not what the user should ask about
@@ -335,6 +435,9 @@ Based on Stage 4's adversarial review results, select the optimal path. Must inc
 8. **Respect user choice** — User can override forcing level and intent labels anytime
 9. **Transparent forcing level** — Output must clearly indicate the current level; user can upgrade or downgrade anytime
 10. **Honest credibility scores** — Credibility must be based on actual review results, never inflated for appearance
+11. **Silent preferences** — Preferences are applied invisibly; only explain if asked
+12. **Preference data stays in skill** — Store in `references/user-preferences.md`, not in workspace memory
+13. **Sliding window** — Preference stats based on last 10 interactions; old data naturally decays
 
 ---
 
@@ -346,3 +449,5 @@ Based on Stage 4's adversarial review results, select the optimal path. Must inc
   - Common anti-patterns and fixes
   - Consensus answer identification and breaking techniques
   - 5 signals of high-quality questions
+- `references/self-learning.md` — Self-learning system specification (preference recording, application rules, sliding window)
+- `references/user-preferences.md` — Auto-maintained user preference data (do not edit manually)

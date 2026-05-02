@@ -9,9 +9,10 @@ Output templates for all SharpAsk forcing levels. Read this file when rendering 
 Templates below are the **default** format. Apply these adaptive rules:
 
 **Summary mode (Level 3 default)**: Level 3 output is long. By default, render a **compact version**:
-- Show only: Intent Recognition → Cognitive Forcing Version → Multi-Path table → Final Recommendation (4 sections)
-- Collapse Adversarial Report and Dimensions into a one-line summary
-- User can say "expand" or "full report" to see the complete version
+- Show: Intent Recognition → Multi-Path table → Selection Prompt
+- Collapse Adversarial Report into one-line credibility+key-risk per path
+- Collapse Dimensions into a single combined list
+- User can say "expand" or "full report" to see full adversarial analysis before selecting
 
 **Progressive disclosure (all levels)**: If the user says "stop" or "just give me the question" at any stage, skip remaining stages and output whatever is ready.
 
@@ -87,6 +88,10 @@ Templates below are the **default** format. Apply these adaptive rules:
 
 ## Level 3 Output (Deep Adversarial)
 
+Level 3 has three output phases: **Phase 1** (Analysis) is shown automatically, **Phase 2** (Selection Prompt) follows immediately, and **Phase 3** (Final Output) is shown after the user selects or combines a path.
+
+### Phase 1: Analysis
+
 ```
 ## 🏷️ Intent Recognition
 
@@ -98,24 +103,15 @@ Templates below are the **default** format. Apply these adaptive rules:
 
 [2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
 
-## 🎯 Cognitive Forcing Version
-
-> [Optimized question with all forcing constraints, ready to copy-paste]
-
-**Stance Constraint:** [What stance requirement was injected]
-**Anti-Consensus Constraint:** [What mainstream view to challenge]
-**Trade-off Constraint:** [What to sacrifice for what]
-**Deep Forcing:** [Which additional dimension was injected]
-
-**Consensus Level:** 🟢/🟡/🔴 [explanation]
-
 ## 🔄 Multi-Path Comparison
 
-| Path | Approach | Optimized Question | Consensus | Credibility |
-|------|----------|-------------------|-----------|-------------|
-| A | [one-sentence summary] | [optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐⭐ |
-| B | [one-sentence summary] | [optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐ |
-| C | [one-sentence summary] | [optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐ |
+| Path | Angle | Approach | Optimized Question | Consensus | Credibility |
+|------|-------|----------|-------------------|-----------|-------------|
+| A | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐⭐ |
+| B | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐⭐ |
+| C | [angle tag from vocabulary] | [one-sentence summary] | [full optimized question] | 🟢/🟡/🔴 | ⭐⭐⭐ |
+
+> Each path's optimized question already incorporates all forcing constraints (stance, anti-consensus, trade-off, deep forcing). The Angle column shows the path's distinctive perspective from the standard vocabulary.
 
 ## ⚔️ Adversarial Report
 
@@ -144,13 +140,41 @@ Templates below are the **default** format. Apply these adaptive rules:
 
 1. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
 2. **[Dimension name]**: [Why it matters] — [What blind spot it causes if ignored]
+```
 
-## ✅ Final Recommendation
+### Phase 2: Selection Prompt
 
-**Recommended path:** [A/B/C]
-**Credibility:** ⭐⭐⭐⭐⭐
-**Rationale:** [Why this path — not because it's "best" but because it's "hardest to get wrong"]
-**Applicability boundary:** [Under what conditions this holds]
-**Risk warning:** [Top 1-2 risks]
-**Exit strategy:** If you find [some key assumption] doesn't hold, immediately pivot to [alternative path], because [reason]
+```
+## 🎯 Choose Your Path
+
+Pick a path, combine elements, or describe what you prefer:
+
+- **A** — [one-line summary of path A's angle]
+- **B** — [one-line summary of path B's angle]
+- **C** — [one-line summary of path C's angle]
+- **Combine** — e.g., "A's angle + B's constraint" (max 3 paths)
+
+💡 If undecided: Path [X] has the highest credibility ([score]) and broadest applicability.
+```
+
+### Phase 3: Final Output (after user selection)
+
+```
+## ✅ Final Optimized Question
+
+**Selected:** [Path X / Combination description]
+
+> [Full polished question — clean, no meta-commentary, ready to copy-paste into any AI]
+
+**Embedded constraints:**
+- [Constraint 1 — what it forces and why]
+- [Constraint 2]
+- [Constraint 3]
+
+**Best used when:** [Applicability boundary]
+**Watch out for:** [Top risk]
+**If the answer feels off, pivot by asking:** "[Follow-up question]"
+
+---
+拿到回答后，如果方向不对回复「方向偏了」；如果很好回复「很好」。
 ```
