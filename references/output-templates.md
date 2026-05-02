@@ -150,18 +150,6 @@ The output follows this **strict order**: Level → 诊断 → 意图 → 路径
 }
 ```
 
-**Fallback (if tool unavailable):**
-```
-选择路径（可多选），我会输出最终打磨好的问题:
-
-A — [one-line summary + credibility]
-B — [one-line summary + credibility]
-C — [one-line summary + credibility]
-
-如果犹豫: 路径 [X] 可信度最高，适用范围最广。
-可组合多条（如 "A + B"），我会融合核心要素。
-```
-
 ### Phase 2: Final Output (after user selection)
 
 After the user selects one or multiple paths via the dialog:
@@ -244,7 +232,7 @@ SharpInput uses interactive dialogs in three scenarios:
 
 ### Standard Dialog Templates
 
-**IMPORTANT**: All examples below show the content inside the `questions[0]` object. When calling the tool, wrap in `{"questions": [...]}`.
+**IMPORTANT**: All JSON examples below are complete and ready to use as tool call parameters. Call the AskUserQuestion tool directly with the JSON shown.
 
 #### Budget Clarification
 ```json

@@ -13,6 +13,7 @@ description: >
   "帮我理清思路", "这个问题问得好不好", "帮我润色", "优化一下",
   "这样说对不对", "帮我理一下", "我这样说合适吗", "帮我完善一下".
 agent_created: true
+allowed-tools: Read, Write, Glob, Bash, AskUserQuestion
 ---
 
 # SharpInput — AI Input Optimizer
@@ -319,9 +320,6 @@ When critical information is missing, you **MUST call the AskUserQuestion tool**
 ]}]}
 ```
 
-**Fallback**: If AskUserQuestion tool is not available, use the text-based inference + confirmation pattern:
-> "我推测你的背景是 [X]，想解决 [Y]，在 [Z] 场景下——对吗？说偏了帮我纠正。"
-
 **Rules**:
 - Inference must be based on clues already in the question — no fabrication
 - If the question already has sufficient information (background, goal, and scenario are all clear), skip this step and tell the user:
@@ -330,8 +328,6 @@ When critical information is missing, you **MUST call the AskUserQuestion tool**
 - After the user selects or corrects, proceed to Stage 1
 - Level 0 (rapid forcing) skips this step; Level 1 may skip it unless information is clearly insufficient
 - **Language matching**: All user-facing messages in this flow must match the user's language (Chinese in → Chinese out, English in → English out)
-- **Conditional answer for vague inputs**: When information is clearly insufficient (Level 1, vague input), do NOT only ask clarifying questions. Instead, provide a **conditional framework** alongside the questions: "If your situation is [X], my suggestion is [Y]. If it's [A], then [B]. Confirm which applies to you." This ensures the user gets directional value even without answering all questions.
-- **Dialog vs text**: Prefer AskUserQuestion for common quantifiable parameters (budget, timeline, scope, tech stack). Use text fallback only for open-ended or nuanced context that can't be pre-defined.
 - **Combine with Gate**: If Gate's Step 3 already triggered a dialog (e.g., budget dialog for low-confidence purchase question), do NOT ask the same question again in Context Completion. Use the Gate dialog result as input.
 
 ---
@@ -558,11 +554,6 @@ Output in this **strict order**:
   ]
 }
 ```
-
-**Fallback**: If AskUserQuestion tool is not available, fall back to text-based prompt:
-> **ZH:** "选择路径（可多选），我会输出最终打磨好的问题。如果犹豫，路径 [X] 可信度最高。可组合多条（如 'A + B'）。"
->
-> **EN:** "Select paths (multi-select OK). If unsure, Path [X] has the highest credibility. Combine multiple (e.g., 'A + B')."
 
 #### Step 2: Handle User Response
 
