@@ -38,8 +38,8 @@ Store: `references/user-preferences.md` (in the skill directory, NOT workspace m
 ## Combination Mechanics (max 3 paths)
 
 When user combines paths:
-- **2 paths**: Use the higher-credibility path as base, inject the other's specified elements
-- **3 paths (all)**: Use the highest-credibility path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。继续？" — proceed unless user objects
+- **2 paths**: Use the lower-risk path as base, inject the other's specified elements
+- **3 paths (all)**: Use the lowest-risk path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。继续？" — proceed unless user objects
 - **Conflict detection**: If combined elements contradict, flag it: "这些元素方向冲突 — [说明]。我优先了 [X] 因为 [原因]。要调整吗？"
 - After merging, run through the 5 Signals quality gate
 

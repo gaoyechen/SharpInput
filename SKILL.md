@@ -13,7 +13,7 @@ description: >
   "帮我理清思路", "这个问题问得好不好", "帮我润色", "优化一下",
   "这样说对不对", "帮我理一下", "我这样说合适吗", "帮我完善一下".
 agent_created: true
-allowed-tools: Read, Write, Glob, Bash, AskUserQuestion
+allowed-tools: Read, Write, Glob, Bash, AskUserQuestion, Agent
 ---
 
 # SharpInput — AI Input Optimizer
@@ -30,7 +30,7 @@ allowed-tools: Read, Write, Glob, Bash, AskUserQuestion
 > For multi-select, add `"multiSelect": true` inside the question object.
 
 Through scene gating → intent recognition → context completion → problem reframing →
-cognitive forcing → divergent thinking → adversarial loop → convergent synthesis,
+cognitive forcing → divergent thinking → independent review → convergent synthesis,
 SharpInput sharpens any user input — questions, problem statements, requirements, ideas, plans —
 into optimized versions that force AI to produce genuine opinions, clear positions, and real insight,
 not "correct but useless" platitudes.
@@ -96,9 +96,8 @@ Input received
   │       └─  Level 3 (Deep Adversarial): Full analysis with multi-path alternatives
   │
   ├─ Has System prompt design signal?
-  │   └─ YES → 🟡 Special Mode: Use system prompt design template from `references/advanced-techniques.md`.
-  │       Apply SharpInput's cognitive forcing to the design: "Your system prompt must have a clear
-  │       anti-definition — what it does NOT do is more important than what it does."
+  │   └─ YES → 🟡 Special Mode: Apply SharpInput's cognitive forcing to the design.
+  │       "Your system prompt must have a clear anti-definition — what it does NOT do is more important than what it does."
   │
   └─ No clear signal detected
       └─ 🟡 Level 1 by default. Inform user:
@@ -200,82 +199,64 @@ If no preference data found, proceed normally.
 
 **Fully silent**: Do NOT inform the user that preferences are being applied. The effect is visible in recommendations; the mechanism is invisible. Only explain if the user asks "why do you recommend this?"
 
+**Write-back timing**: After Stage 5 Step 4 outputs the final question, silently record session data to `references/user-preferences.md`. See `references/self-learning.md` for full recording rules.
+
 ---
 
 ### Intent Recognition (After Gate, Before Stage 1)
 
-**Goal: Identify the core intent of the user's question to determine which forcing strategy Stage 2 applies.**
+**Goal: 通过独立 Intent Agent 分析用户输入的真实意图，避免模型自判导致的误分类。**
 
->  **INTENT CLARITY RULE**: If you are not confident about the user's true intent, **STOP and ask**. Do NOT guess. Interrupt the flow, call AskUserQuestion to present guided intent options, wait for the user's response, then continue. Guessing intent leads to wrong forcing strategies and wasted optimization.
+>  **Reference**: Intent Agent 的完整 prompt 模板在 `references/intent-prompt.md`。
 
-Classify with a **primary + secondary** dual-label system:
+#### 流程
 
-| Intent | Meaning | Typical Phrasing | Forcing Strategy |
-|--------|---------|-----------------|-----------------|
-| **Explain** | Understand concepts / principles / mechanisms | "What is X", "How does X work"; "X是什么", "X怎么工作", "帮我理解X" | Counter-intuitive anchor + Analogical counter-examples |
-| **Decision** | Make a choice / judgment | "Should I do A or B", "Is it worth doing X"; "我应该选A还是B", "值不值得做X", "哪个好" | Regret pre-mortem + Killer question |
-| **Generate** | Generate code / content / solution | "Help me write X", "Design a Y"; "帮我写个X", "设计一个Y", "做一个Z" | Minimal viable solution + Constraint challenge |
-| **Analyze** | Analyze a problem / evaluate a solution | "How is this plan", "Why would X fail"; "这个方案怎么样", "为什么X会失败", "分析一下" | Hidden assumption exposure + Failure conditions |
-| **Explore** | Explore directions / find possibilities | "What directions are there", "What else could work"; "有什么方向", "还有什么办法", "还有其他选择吗" | Multi-path + Devil's advocate |
+1. 将用户原始输入和 Gate 分类结果传入 Intent Agent
+2. Intent Agent 分析意图信号，判断意图是否明确
+3. 根据 Agent 返回结果执行：
 
-**Output rules**:
-- Show the intent recognition result in one sentence:
-  - EN: "I've identified your question as **Decision type** (making a choice). Primary forcing strategy: regret pre-mortem + killer question."
-  - ZH: "我识别到你的问题是 **Decision 类型**（做选择）。主要施压策略：后悔预判 + 杀手问题。"
-- If a secondary intent exists, show it too: "Primary: Decision, Secondary: Analyze" / "主意图: Decision, 次意图: Analyze"
-- **User can override**: If the user says "no, this is more like analysis" / "不对，这更像是分析" → switch forcing strategy.
+**路径 A — 意图明确：**
+- 显示："我识别到你的问题是 **[意图] 类型**。施压策略：[策略]。"
+- 如果存在次意图，也显示："主意图: [X], 次意图: [Y]"
+- 用户可以覆盖："不对，这更像是分析" → 切换策略
+- 继续进入 Context Completion
 
-#### Intent Uncertainty — Interrupt and Ask (MANDATORY)
+**路径 B — 意图存在歧义：**
+- 直接调用 Agent 返回的 AskUserQuestion JSON（选项是上下文相关的，不是固定模板）
+- 用户选择后，记录主意图和次意图
+- 显示："已确认意图：[主意图] + [次意图]，继续优化。"
+- 继续进入 Context Completion
 
-**When intent is unclear, ambiguous, or could reasonably map to 2+ different intents, you MUST interrupt the flow and call AskUserQuestion.** Do NOT proceed with a guessed intent.
+#### 调用方式
 
-**Triggers for interrupt** (any one is sufficient):
-- Input is too vague to confidently classify (e.g., "帮我看看这个" — 看什么？怎么看？)
-- Input could reasonably be two different intents (e.g., "这个方案怎么样" could be Analyze OR Decision)
-- Input lacks a clear verb or action word
-- Input is a fragment or incomplete thought
-- Multiple intents seem equally likely with no clear primary
-
-**When interrupting, use this AskUserQuestion pattern:**
+读取 `references/intent-prompt.md` 模板，填入用户输入和 Gate 分类结果，使用 Agent 工具：
 
 ```json
-{"questions": [{"question": "你的核心需求是什么？我好用最合适的策略来优化", "header": "意图确认", "options": [
-  {"label": " 理解原理", "description": "想搞懂某个概念、机制、底层逻辑"},
-  {"label": " 帮我决策", "description": "面临选择，需要建议和权衡分析"},
-  {"label": " 生成内容", "description": "需要代码、方案、文档等产出"},
-  {"label": " 分析评估", "description": "已有方案/问题，需要诊断和评价"}
-]}]}
+{
+  "description": "SharpInput Intent — intent analysis",
+  "prompt": "[从 references/intent-prompt.md 读取模板，替换 {{...}} 占位符]",
+  "subagent_type": "general-purpose"
+}
 ```
 
-**After user selects an intent:**
-1. Record the selected intent as the primary intent
-2. Show: "已确认意图为 [selected intent]，继续优化。"
-3. Resume the flow from Stage 1 (skip re-classification)
+#### 主次意图处理
 
-**Edge cases:**
-- If the user selects an intent that contradicts obvious signals (e.g., picks "理解原理" for "帮我写个登录页面"), note the mismatch but proceed with their choice
-- If the user provides custom text via "Other", re-classify based on their description and confirm
+主意图决定主要施压策略。若 Intent Agent 检测到次意图，追加该意图的一个代表性约束。
+若主次策略冲突，告知用户并建议分步处理。
 
-**Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints.**
+#### 关键约束
 
-#### Mixed Intent Matrix (Primary × Secondary)
-
-When two intents coexist, use this matrix to determine the combined forcing strategy:
-
-| Primary → Secondary ↓ | Explain | Decision | Generate | Analyze | Explore |
-|----------------------|-----------|-------------|-------------|-----------|-----------|
-| **Explain** | — | Regret pre-mortem + Counter-intuitive anchor | Minimal viable solution + "Why this conceptual foundation?" | Hidden assumption exposure + Counter-intuitive anchor | Multi-path + "Explain each path's underlying mechanism" |
-| **Decision** | Counter-intuitive anchor + "Which choice does this imply?" | — | Minimal viable solution + Regret pre-mortem | Hidden assumption exposure + Regret pre-mortem | Multi-path + Regret pre-mortem (evaluate each path's regret) |
-| **Generate** | Counter-intuitive anchor + Constraint challenge | Regret pre-mortem + Constraint challenge | — | Hidden assumption exposure + Constraint challenge | Multi-path + Minimal viable solution (simplify each path) |
-| **Analyze** | Counter-intuitive anchor + Hidden assumption exposure | Regret pre-mortem + Hidden assumption exposure | Minimal viable solution + Hidden assumption exposure | — | Multi-path + Hidden assumption exposure |
-| **Explore** | Counter-intuitive anchor + Devil's advocate | Regret pre-mortem + Devil's advocate | Minimal viable solution + Devil's advocate | Hidden assumption exposure + Devil's advocate | — |
-
-**Tertiary intent handling**: If a third intent is clearly present, add only its **most distinctive constraint** (don't stack all three). Inform the user: "I'm also detecting [tertiary intent] — adding [specific constraint] as a supplementary layer."
-
-**Intent conflict detection**: When primary and secondary strategies directly contradict (e.g., Explain wants to expand understanding while Generate wants to narrow to one solution), notify the user:
-> "Your question has both 'understand' and 'build' dimensions. I recommend processing them in sequence: first explore the concept (Explain), then converge on a solution (Generate). Proceed this way?"
-
-If the user declines, prioritize the primary intent and note the trade-off.
+- Intent Agent 的输出格式必须遵循 `references/intent-prompt.md` 中定义的 `=== INTENT REPORT ===` 模板
+- 如果 Intent Agent 调用失败，降级为内联意图识别：使用 5 种意图分类表（Explain/Decision/Generate/Analyze/Explore），若意图不明确则用以下 fallback 模板：
+  ```json
+  {"questions": [{"question": "你的核心需求是什么？", "header": "意图确认", "options": [
+    {"label": "理解原理", "description": "想搞懂某个概念、机制、底层逻辑"},
+    {"label": "帮我决策", "description": "面临选择，需要建议和权衡分析"},
+    {"label": "生成内容", "description": "需要代码、方案、文档等产出"},
+    {"label": "分析评估", "description": "已有方案/问题，需要诊断和评价"}
+  ]}]}
+  ```
+- 用户始终可以覆盖 Intent Agent 的分类结果
 
 ---
 
@@ -285,8 +266,6 @@ If the user declines, prioritize the primary intent and note the trade-off.
 
 >  **NO-GUESS RULE**: Do NOT fabricate or assume missing context. If you cannot confidently infer a dimension (background, goal, scenario) from the user's input, **STOP and ask** via AskUserQuestion. A guess-based optimization produces generic, unhelpful output. Asking is always better than assuming.
 
->  **Reference**: For structuring the output format and audience targeting of context-inferred questions, see `references/prompt-patterns.md` → **CO-STAR Framework** (Context/Objective/Style/Tone/Audience/Response). Use the Audience and Response elements to sharpen the context completion output.
-
 Infer missing information across three dimensions:
 
 | Dimension | What to Check | How to Infer |
@@ -295,68 +274,28 @@ Infer missing information across three dimensions:
 | **Goal** | What does the user actually want to achieve? Short-term or long-term? | From question intent and implicit needs |
 | **Scenario** | What environment? Team size? Time constraints? | From question scope and constraint clues |
 
-**Output style: Interactive Dialog + Conditional Framework**
-
-When critical information is missing, you **MUST call the AskUserQuestion tool** to present clickable options. **DO NOT** output text-based "A / B / C" options — the user cannot click them. Only a tool call to AskUserQuestion produces an interactive dialog.
-
-**Interactive dialog selection by ambiguity type:**
-
-| Ambiguity Type | Detection Signal | Dialog Options |
-|----------------|-----------------|----------------|
-| **Budget/Price** | "买", "购买", "预算", "价格", "多少钱", "cost", "budget", "price", "afford" | 3 price tiers + "Other" (custom) |
-| **Scope/Scale** | "做一个", "方案", "系统", "项目", "规模", "build", "system", "project" | Small / Medium / Large + "Other" |
-| **Timeline** | "多久", "什么时候", "时间", "deadline", "when", "how long", "timeline" | 1周内 / 1个月内 / 3个月+ / 其他 |
-| **Audience** | "给谁看", "写给", "面向", "for", "audience", "readers" | Internal / Client / Public / Other |
-| **Tech Stack** | "用什么", "框架", "技术", "language", "framework", "stack" | 提供常见选项 + "Other" |
-| **Role/Perspective** | "从谁的角度", "角色", "perspective", "role", "standpoint" | 技术 / 产品 / 管理层 / 用户 / Other |
-
-**AskUserQuestion call pattern (JSON, matches tool schema exactly):**
-```json
-{"questions": [{"question": "[Chinese or English question matching user's language]", "header": "[Short label, 2-4 chars]", "options": [
-  {"label": "[Option 1]", "description": "[What this option means]"},
-  {"label": "[Option 2]", "description": "[What this option means]"},
-  {"label": "[Option 3]", "description": "[What this option means]"},
-  {"label": "其他", "description": "自定义，选择 Other 输入具体值"}
-]}]}
-```
+When critical information is missing, use AskUserQuestion to ask. Follow the same dialog design rules as Gate (max 4 options, always include "其他", description mandatory, language match).
 
 **Rules**:
 - Inference must be based on clues already in the question — no fabrication
-- If the question already has sufficient information (background, goal, and scenario are all clear), skip this step and tell the user:
-  - EN: "Question has sufficient context, proceeding directly to optimization."
-  - ZH: "问题信息充分，直接进入优化。"
+- If the question already has sufficient information (background, goal, and scenario are all clear), skip this step: "问题信息充分，直接进入优化。" / "Question has sufficient context, proceeding directly to optimization."
 - After the user selects or corrects, proceed to Stage 1
-- Level 0 (rapid forcing) skips this step; Level 1 may skip it unless information is clearly insufficient
-- **Language matching**: All user-facing messages in this flow must match the user's language (Chinese in → Chinese out, English in → English out)
-- **Combine with Gate**: If Gate's Step 3 already triggered a dialog (e.g., budget dialog for low-confidence purchase question), do NOT ask the same question again in Context Completion. Use the Gate dialog result as input.
+- Level 0 skips this step; Level 1 may skip it unless information is clearly insufficient
+- **Combine with Gate**: If Gate's Step 3 already triggered a dialog (e.g., budget dialog for low-confidence purchase question), do NOT ask the same question again. Use the Gate dialog result as input.
 
 ---
 
 ### Stage 1: Problem Reframing — Internal Only, Not Shown to User
 
-**Goal: Prevent garbage input.**
+**Goal: Clarify the real need, bound the scope, compress if long.**
 
->  **Reference**: When diagnosing question flaws, cross-check against `references/prompt-patterns.md` → **Common Anti-Patterns** (vague request, too broad, hidden assumption, contradictory constraints, missing role, no format specified, over-constraining, assumed consensus). These 8 anti-patterns are the standard checklist for what's wrong with the original question.
-
-Upon receiving the question (combined with intent recognition and context completion results), complete three things internally:
-
-| Action | What to Check |
-|--------|--------------|
-| **Clarify the goal** | What does the user actually need to solve? What's the deeper problem behind the surface question? Is there a more fundamental real need? |
-| **Bound the scope** | Is the question too broad? What specific scenario, tech stack, or constraints should it be narrowed to? |
-| **Define output standards** | What counts as a good answer? Does the user expect a list, comparison, code, analysis report, or decision recommendation? |
-| **Compress if long** | If the input is very long (>500 words), extract the core question/statement to 2-3 sentences. Preserve key constraints. Note what was compressed. |
-
-> For long inputs, apply context compression: remove filler, merge similar points, prioritize constraints and goals. See `references/advanced-techniques.md` → Context/Token Management.
-
-**Internal output**: A constrained question. This becomes the input for all subsequent stages. Not shown to user.
+Internally: identify the deeper problem behind the surface question, narrow to specific constraints, and for long inputs (>500 words) extract the core to 2-3 sentences. This becomes the input for all subsequent stages. Not shown to user.
 
 **Optimization Rules** (apply to all optimized questions):
-
-1. **No prose explanation** — Only output the optimized question itself, no commentary
-2. **Minimize content** — Strip everything that doesn't serve the core question; every word must earn its place
-3. **Clean format** — Use headings, bold, bullets, and numbered lists. No XML/HTML tags
-4. **Self-contained** — One shot. User pastes it into any AI and gets a usable answer without follow-up
+1. **No prose** — Only the optimized question itself, no commentary
+2. **Minimal** — Every word must earn its place
+3. **Clean format** — Headings, bold, bullets. No XML/HTML tags
+4. **Self-contained** — User pastes it into any AI and gets a usable answer without follow-up
 
 ---
 
@@ -374,8 +313,6 @@ Upon receiving the question (combined with intent recognition and context comple
 | **Actionability Constraint** | Must produce a concrete first step | Require "give me one specific action I can take this week — not a direction, not a framework, a step" |
 
 #### Deep Forcing Layer (Level 2+, Auto-selected by Intent Recognition)
-
->  **Reference**: For role-setting and persona construction in forcing constraints, see `references/prompt-patterns.md` → **CRISPE Framework** (Capacity/Request/Insight/Style/Personality/Experiment). For advanced prompting techniques (CoT, few-shot, XML tags, role-based prompting) that can be woven into optimized questions, see `references/advanced-techniques.md`.
 
 Primary intent determines the main forcing strategy; secondary intent adds supplementary constraints:
 
@@ -440,47 +377,40 @@ Generate 2-3 different approaches, each internally consistent:
 
 ---
 
-### Stage 4: Adversarial Loop  Credibility Guard
+### Stage 4: 独立审查 — Judge Agent
 
-**Goal: Kill hallucinations, establish a "credibility score."**
+**Goal: 通过独立子代理实现真正的对抗审查，而非同一生成过程中的自评。**
 
-Conduct three rounds of adversarial review on each path, each producing a credibility signal:
+>  **Reference**: Judge 子代理的完整 prompt 模板在 `references/judge-prompt.md`。
 
-#### Round 1: Assumption Audit
+#### 流程
 
-| Check Item | Description |
-|-----------|-------------|
-| **List all hidden assumptions** | What preconditions must hold for this path to work? List all |
-| **Tag fragility** | Each assumption tagged: 🟢 Solid / 🟡 Questionable /  High risk |
-| **Find the weakest assumption** | If you could only challenge one, which? Why? |
+1. 将 Stage 3 生成的路径文本（不含任何生成过程信息）传入 Judge 子代理
+2. 同时传入用户的原始问题作为上下文
+3. Judge 子代理独立执行三项任务：
+   - **反方辩护**: 假设坚信其他路径是更好的选择，用 3 个具体论据攻击当前路径，然后反过来用当前路径攻击其他路径的 1 个核心论点
+   - **真实反例搜索**: 找一个真实世界中类似策略失败的案例（主体 + 时间 + 失败原因），找不到写"未验证"
+   - **翻转条件分析**: 设定可量化的边界条件（什么具体参数下结论会反转），无法确定写"边界模糊"
+4. 收到 Judge 报告后，将审查结果合并到路径输出中
 
-#### Round 2: Counter-example Search
+#### 调用方式
 
-| Check Item | Description |
-|-----------|-------------|
-| **Historical counter-example** | Any real cases where a similar conclusion was overturned? |
-| **Boundary counter-example** | Under what extreme conditions would this conclusion completely reverse? |
-| **Analogical counter-example** | A scenario that seems similar but has the opposite conclusion — test logical consistency |
+读取 `references/judge-prompt.md` 模板，填入原始问题和路径文本，使用 Agent 工具启动 Judge 子代理：
 
-#### Round 3: Failure Condition Simulation
+```json
+{
+  "description": "SharpInput Judge — independent path review",
+  "prompt": "[从 references/judge-prompt.md 读取模板，替换 {{...}} 占位符]",
+  "subagent_type": "general-purpose"
+}
+```
 
-| Check Item | Description |
-|-----------|-------------|
-| **Environment failure** | Does the answer fail after policy, market, or tech stack changes? |
-| **Scale failure** | Does the conclusion reverse from a 10-person team to a 1000-person team? |
-| **Time failure** | How does credibility decay over 1 year, 3 years, 5 years? |
+#### 关键约束
 
-#### Credibility Score
-
-Based on three rounds of review, output a credibility score for each path:
-
-| Score | Meaning | Criteria |
-|-------|---------|---------|
-|  | Highly credible | Solid assumptions, no strong counter-examples, clear failure boundaries |
-|  | Mostly credible | 1 questionable assumption, but counter-examples not fatal |
-|  | Conditionally credible | Has 🟡 assumptions, only works under specific conditions |
-|  | Low credibility | Has  assumptions or strong counter-examples, use with caution |
-|  | Not credible | Core assumption overturned or fatal counter-example exists |
+- Judge 只接收：原始问题 + 路径文本。**不接收**生成过程、施压策略、意图识别等上下文
+- Judge 的输出格式必须遵循 `references/judge-prompt.md` 中定义的 `=== JUDGE REPORT ===` 模板
+- 如果 Judge 调用失败（超时/错误），**降级为内联审查**：在每条路径后追加一句关键假设 + 一个风险标注，并告知用户："Judge 子代理调用失败，已降级为内联审查。"
+- 可信度标注必须来自 Judge 的风险判定，主 Agent **不得自行修改**
 
 ---
 
@@ -492,40 +422,14 @@ Based on three rounds of review, output a credibility score for each path:
 
 Level 3 output follows two phases: **Phase 1** (Analysis + Paths + Selection) in one go, **Phase 2** (Final Output) after user selection.
 
-#### Step 1: Output Phase 1 — Analysis + Paths + Selection
+#### Step 1: Output Phase 1 — Analysis + Paths + Judge Results
 
-Output in this **strict order**:
-
-```
-[Level 3]
-
-诊断: [2-3 sentences: core intent + main flaw + what mediocre answer you'd likely get]
-
-意图: [Explain/Decision/Generate/Analyze/Explore]（如有次意图也列出）
-施压策略: [primary strategy] + [secondary supplement]
-
-路径 A — [angle tag]:
-> [Full optimized question for path A, self-contained, ready to copy-paste]
-可信度: [ ~ ] — [one-line key risk or weakest assumption]
-
-路径 B — [angle tag]:
-> [Full optimized question for path B, self-contained, ready to copy-paste]
-可信度: [ ~ ] — [one-line key risk or weakest assumption]
-
-路径 C — [angle tag]:
-> [Full optimized question for path C, self-contained, ready to copy-paste]
-可信度: [ ~ ] — [one-line key risk or weakest assumption]
-
-被忽略的维度:
-1. [Dimension]: [why it matters]
-2. [Dimension]: [why it matters]
-```
-
-**Key rules:**
+> **Output template**: See `references/output-templates.md` → Level 3 Phase 1 for the full template. Key rules:
 - **No comparison table.** Each path is presented independently with its own full optimized question.
-- Each path includes its own credibility score + one-line key risk.
+- Each path includes Judge 报告中的审查结果（反方攻击、反例、翻转条件、风险判定），**不得自行修改**。
 - The full optimized question under each path is self-contained and ready to copy-paste.
-- Paths are ordered by credibility (highest first).
+- Paths are ordered by risk level (可靠 first, 高风险 last).
+- 如果所有路径的风险判定都是"高风险"，在输出末尾追加警告："所有路径均被判定为高风险，请谨慎选择。"
 
 **CRITICAL -- Immediately after** the text output, you **MUST call the AskUserQuestion tool** with `multiSelect: true`. **DO NOT** output text-based "A / B / C" options -- these are NOT clickable. The user needs an interactive dialog to select paths. If you output text options instead of calling AskUserQuestion, you have failed this step.
 
@@ -533,9 +437,9 @@ Output in this **strict order**:
 - `question`: "选择路径（可多选），我会输出最终打磨好的问题"
 - `header`: "选择路径"
 - `multiSelect`: **true** — user can select multiple paths to combine
-- `options`: One per path (label = "Letter — angle tag", description = one-line credibility + key approach)
+- `options`: One per path (label = "Letter — angle tag", description = 风险判定 + 反例摘要)
 - **No "组合/Combine" option needed** — multi-select natively handles combination
-- Place the **highest-credibility path first** (serves as recommendation hint)
+- Place the **lowest-risk path first** (serves as recommendation hint)
 
 **Example AskUserQuestion call (JSON, matches tool schema exactly — `multiSelect` goes inside the question object):**
 ```json
@@ -546,9 +450,9 @@ Output in this **strict order**:
       "header": "选择路径",
       "multiSelect": true,
       "options": [
-        {"label": "A — risk-first", "description": "聚焦风险和下行分析，可信度 "},
-        {"label": "B — counter-intuitive", "description": "寻找反直觉答案，可信度 "},
-        {"label": "C — time-horizon", "description": "拉到 3-5 年后审视，可信度 "}
+        {"label": "A — risk-first", "description": "风险判定: 可靠 | 反例: 未验证"},
+        {"label": "B — counter-intuitive", "description": "风险判定: 有条件 | 反例: 某案例"},
+        {"label": "C — time-horizon", "description": "风险判定: 高风险 | 反例: 某案例"}
       ]
     }
   ]
@@ -562,14 +466,14 @@ Output in this **strict order**:
 | Selects one path (e.g., only "B") | Use that path's optimized question as base |
 | Selects multiple paths (e.g., "A" + "B") | Merge elements from selected paths (see combination mechanics below) |
 | Describes preference (e.g., "更偏风险视角") | Use closest path as base, adjust per preference |
-| Says "你选" / "your pick" | Apply recommendation hint (highest-credibility path) |
-| Says "stop" / "直接给问题" | Output highest-credibility path immediately |
+| Says "你选" / "your pick" | Apply recommendation hint (lowest-risk path) |
+| Says "stop" / "直接给问题" | Output lowest-risk path immediately |
 
 **Combination mechanics** (multi-select):
-- **2 paths selected**: Use the higher-credibility path as base, inject the other's specified elements
-- **3 paths selected (all)**: Use the highest-credibility path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。"
+- **2 paths selected**: Use the lower-risk path as base, inject the other's specified elements
+- **3 paths selected (all)**: Use the lowest-risk path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。"
 - **Conflict detection**: If combined elements contradict, flag it and suggest resolution
-- After merging, run through the 5 Signals quality gate
+- After merging, run through the Judge-driven quality gate
 
 #### Step 3: Output Phase 2 — Final Polished Output
 
@@ -587,10 +491,8 @@ Output in this **strict order**:
 - [Actionability Constraint]
 
 适用边界: [under what conditions this works best]
-风险提示: [top risk]
+风险提示: [来自 Judge 报告的反例或翻转条件]
 如果回答方向不对，追问: "[follow-up question]"
-
-优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
 ```
 
 **Multiple paths selected (combination):**
@@ -609,22 +511,14 @@ Output in this **strict order**:
 - [Actionability Constraint]
 
 适用边界: [under what conditions this works best]
-风险提示: [top risk]
+风险提示: [来自 Judge 报告的反例或翻转条件]
 如果回答方向不对，追问: "[follow-up question]"
-
-优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
 ```
 
-Quality gate: before outputting, check against 5 Signals (clear success criteria, constraints present, context provided, output format specified, room for exploration). Add any missing signal.
-
-Also run the 5-Dimension Prompt Quality Score (see `references/advanced-techniques.md` → Evaluation Framework):
-- **Clarity** (0-2): Is the optimized question unambiguous?
-- **Specificity** (0-2): Is it precisely scoped?
-- **Completeness** (0-2): Does it include all necessary context and constraints?
-- **Actionability** (0-2): Can the AI directly execute without asking clarifying questions?
-- **Robustness** (0-2): Would slightly different inputs still work with this question?
-
-If any dimension scores 0, fix it before outputting. Include the score summary at the end of the output.
+Quality gate (Judge-driven):
+- 如果 Judge 对所有路径判定为"高风险"，在输出前警告用户
+- 如果 Judge 的反例中包含用户输入中的具体信息（如预算、技术栈），将反例与用户上下文交叉验证，标记相关风险
+- 每条路径的优化问题必须通过自检：自包含、可直接复制、无歧义
 
 #### Step 4: Record User Preference + Optional Feedback
 
@@ -654,10 +548,10 @@ If user replies with feedback, record it as a high-quality preference signal in 
 | 0 | Rapid Forcing | Cognitive Forcing Version + Consensus Level |
 | 1 | Light Optimization | Diagnosis + Optimized Question + Improvements |
 | 2 | Medium Forcing | Intent + Diagnosis + Forcing Version + Dimensions + Warning |
-| 3 | Deep Adversarial | 诊断 → 意图 → 路径A/B/C（独立展示，含完整问题+可信度）→ 被忽略的维度 → 多选对话框 |
+| 3 | Deep Adversarial | 诊断 → 意图 → 路径A/B/C（独立展示，含完整问题+Judge审查结果）→ 被忽略的维度 → 多选对话框 |
 
 **Adaptive rules summary** (full details in `references/output-templates.md`):
-- **Level 3 structure**: 诊断 → 意图 → 路径A/B/C（每条路径独立展示完整优化问题+可信度，不做对比表）→ 被忽略的维度 → AskUserQuestion 多选对话框
+- **Level 3 structure**: 诊断 → 意图 → 路径A/B/C（每条路径独立展示完整优化问题+Judge审查结果，不做对比表）→ 被忽略的维度 → AskUserQuestion 多选对话框
 - **Progressive disclosure**: Say "stop" or "just give me the question" at any stage
 - **Language adaptation**: Placeholders follow user's language
 - **Focus mode**: Specify which sections to show
@@ -675,7 +569,7 @@ If user replies with feedback, record it as a high-quality preference signal in 
 7. **Stay relevant** — Hidden dimensions must relate to user intent; don't chase novelty at the expense of relevance
 8. **Respect user choice** — User can override forcing level and intent labels anytime
 9. **Transparent forcing level** — Output must clearly indicate the current level; user can upgrade or downgrade anytime
-10. **Honest credibility scores** — Credibility must be based on actual review results, never inflated for appearance
+10. **Judge-driven credibility** — Level 3 的风险判定必须来自 Judge 子代理的审查结果，主 Agent 不得自行修改或美化
 11. **Silent preferences** — Preferences are applied invisibly; only explain if asked
 12. **Preference data stays in skill** — Store in `references/user-preferences.md`, not in workspace memory
 13. **Sliding window** — Preference stats based on last 10 interactions; old data naturally decays
@@ -685,19 +579,8 @@ If user replies with feedback, record it as a high-quality preference signal in 
 ## References
 
 - `references/output-templates.md` — All output templates (Level 0~3) and adaptive output rules
-- `references/prompt-patterns.md` — Read as needed:
-  - CRISPE / CO-STAR prompting frameworks
-  - Common anti-patterns and fixes
-  - Consensus answer identification and breaking techniques
-  - 5 signals of high-quality questions
-- `references/advanced-techniques.md` — Advanced prompting techniques for optimized questions:
-  - Chain-of-Thought (CoT) reasoning
-  - Few-shot examples
-  - Role-based prompting
-  - XML tags for structured prompts
-  - Structured output forcing
-  - System prompt design templates
-  - Prompt quality evaluation (5-dimension scoring)
-  - Technique combination patterns
+- `references/judge-prompt.md` — Judge 子代理 prompt 模板（反方辩护 + 反例搜索 + 翻转条件分析）
+- `references/intent-prompt.md` — Intent Agent prompt 模板（意图分析 + 上下文相关选项生成）
+- `references/prompt-patterns.md` — Consensus answer identification and breaking techniques, 5 signals of high-quality questions
 - `references/self-learning.md` — Self-learning system specification (preference recording, application rules, sliding window)
 - `references/user-preferences.md` — Auto-maintained user preference data (do not edit manually)

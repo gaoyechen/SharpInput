@@ -91,11 +91,11 @@ Consensus Level: [low/medium/high]
 
 Level 3 has two phases: **Phase 1** (Analysis + Paths + Selection) is shown in one go, and **Phase 2** (Final Output) is shown after the user selects paths.
 
-### Phase 1: Analysis + Paths + Selection (Single Output)
+### Phase 1: Analysis + Paths + Judge Results (Single Output)
 
 The output follows this **strict order**: Level → 诊断 → 意图 → 路径A → 路径B → 路径C → 被忽略的维度 → 选择框。
 
-**Do NOT show a comparison table.** Each path is presented independently with its own full optimized question and one-line credibility summary. The credibility tag and key risk are embedded inline under each path.
+**Do NOT show a comparison table.** Each path is presented independently with its own full optimized question and Judge 审查结果（反方攻击、反例、翻转条件、风险判定）。所有审查字段来自 Judge 子代理，主 Agent 不得自行修改。
 
 ```
 [Level 3]
@@ -107,15 +107,24 @@ The output follows this **strict order**: Level → 诊断 → 意图 → 路径
 
 路径 A — [angle tag]:
 > [Full optimized question for path A, self-contained, ready to copy-paste]
-可信度: [ ~ ] — [one-line key risk or weakest assumption]
+反方最强攻击: [Judge 报告中 3 个反方论据的摘要，1 句话]
+真实反例: [Judge 报告中的案例] 或 未验证
+翻转条件: [Judge 报告中的翻转条件] 或 边界模糊
+风险判定: [可靠 / 有条件 / 高风险]
 
 路径 B — [angle tag]:
 > [Full optimized question for path B, self-contained, ready to copy-paste]
-可信度: [ ~ ] — [one-line key risk or weakest assumption]
+反方最强攻击: [摘要]
+真实反例: [案例] 或 未验证
+翻转条件: [条件] 或 边界模糊
+风险判定: [可靠 / 有条件 / 高风险]
 
 路径 C — [angle tag]:
 > [Full optimized question for path C, self-contained, ready to copy-paste]
-可信度: [ ~ ] — [one-line key risk or weakest assumption]
+反方最强攻击: [摘要]
+真实反例: [案例] 或 未验证
+翻转条件: [条件] 或 边界模糊
+风险判定: [可靠 / 有条件 / 高风险]
 
 被忽略的维度:
 1. [Dimension]: [why it matters]
@@ -128,9 +137,9 @@ The output follows this **strict order**: Level → 诊断 → 意图 → 路径
 - `question`: "选择路径（可多选），我会输出最终打磨好的问题"
 - `header`: "选择路径"
 - `multiSelect`: **true** — user can select multiple paths to combine
-- `options`: One per path (label = "Letter — angle tag", description = one-line credibility + key approach)
+- `options`: One per path (label = "Letter — angle tag", description = 风险判定 + 反例摘要)
 - **No "组合/Combine" option needed** — multi-select natively handles combination
-- Place the **highest-credibility path first** (serves as recommendation hint)
+- Place the **lowest-risk path first** (serves as recommendation hint)
 
 **Example AskUserQuestion call (JSON, matches tool schema exactly):**
 ```json
@@ -141,9 +150,9 @@ The output follows this **strict order**: Level → 诊断 → 意图 → 路径
       "header": "选择路径",
       "multiSelect": true,
       "options": [
-        {"label": "A — risk-first", "description": "聚焦风险和下行分析，可信度 "},
-        {"label": "B — counter-intuitive", "description": "寻找反直觉答案，可信度 "},
-        {"label": "C — time-horizon", "description": "拉到 3-5 年后审视，可信度 "}
+        {"label": "A — risk-first", "description": "风险判定: 可靠 | 反例: 未验证"},
+        {"label": "B — counter-intuitive", "description": "风险判定: 有条件 | 反例: 某案例"},
+        {"label": "C — time-horizon", "description": "风险判定: 高风险 | 反例: 某案例"}
       ]
     }
   ]
@@ -168,10 +177,8 @@ After the user selects one or multiple paths via the dialog:
 - [Actionability Constraint]
 
 适用边界: [under what conditions this works best]
-风险提示: [top risk]
+风险提示: [来自 Judge 报告的反例或翻转条件]
 如果回答方向不对，追问: "[follow-up question]"
-
-优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
 ```
 
 **Multiple paths selected (combination):**
@@ -190,27 +197,14 @@ After the user selects one or multiple paths via the dialog:
 - [Actionability Constraint]
 
 适用边界: [under what conditions this works best]
-风险提示: [top risk]
+风险提示: [来自 Judge 报告的反例或翻转条件]
 如果回答方向不对，追问: "[follow-up question]"
-
-优化质量: 清晰度 [0-2]/2 | 具体性 [0-2]/2 | 完整性 [0-2]/2 | 可执行性 [0-2]/2 | 鲁棒性 [0-2]/2
 ```
 
 **Combination mechanics (multi-select):**
-- **2 paths selected**: Use the higher-credibility path as base, inject the other's specified elements
-- **3 paths selected (all)**: Use the highest-credibility path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。"
+- **2 paths selected**: Use the lower-risk path as base, inject the other's specified elements
+- **3 paths selected (all)**: Use the lowest-risk path as base, inject the other two's strongest elements. Warn if over-constraining: "三条路径全组合可能导致约束过多，我会提取每条路径的核心要素而非全部内容。"
 - **Conflict detection**: If combined elements contradict, flag it and suggest resolution
-- After merging, run through the 5 Signals quality gate
-
-**Quality gate** (before outputting):
-- Check against 5 Signals (clear success criteria, constraints present, context provided, output format specified, room for exploration). Add any missing signal.
-- Run the 5-Dimension Prompt Quality Score (see `references/advanced-techniques.md`):
-  - **Clarity** (0-2): Is the optimized question unambiguous?
-  - **Specificity** (0-2): Is it precisely scoped?
-  - **Completeness** (0-2): Does it include all necessary context and constraints?
-  - **Actionability** (0-2): Can the AI directly execute without asking clarifying questions?
-  - **Robustness** (0-2): Would slightly different inputs still work with this question?
-- If any dimension scores 0, fix it before outputting.
 
 **Self-learning note**: After outputting the final question, silently record user preference data and append optional feedback line:
 

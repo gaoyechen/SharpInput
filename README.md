@@ -230,8 +230,10 @@ SharpInput/
 ├── SKILL.md                         # 主文件：五阶段流程 + 边界规则
 ├── references/
 │   ├── output-templates.md          # 输出模板（Level 0~3）+ 自适应规则
-│   ├── prompt-patterns.md           # 提问框架参考（CRISPE/CO-STAR）
-│   ├── advanced-techniques.md       # 高级提示词技术（CoT/Few-shot/XML/角色扮演/评估框架）
+│   ├── judge-prompt.md              # Judge 子代理 prompt（反方辩护 + 反例 + 翻转条件）
+│   ├── intent-prompt.md             # Intent Agent prompt（意图分析 + 上下文选项生成）
+│   ├── prompt-patterns.md           # 共识识别与打破技巧、高质量问题信号
+│   ├── advanced-techniques.md       # 高级提示词技术（CoT/Few-shot/XML/角色扮演）
 │   ├── self-learning.md             # 自我学习系统规范
 │   └── user-preferences.md          # 用户偏好数据（自动维护）
 ├── README.md
@@ -331,17 +333,16 @@ Optimization automatically selects appropriate prompting techniques based on the
 
 When input involves "write a system prompt / custom instructions / agent config", SharpInput enters design mode to help build high-quality system prompts from scratch.
 
-## 5-Dimension Quality Score
+## Judge-Driven Review (Level 3)
 
-Every optimized output includes a quality score:
+Level 3 outputs include independent adversarial review from a Judge subagent:
 
-| Dimension | Meaning |
-|-----------|---------|
-| **Clarity** | Unambiguous |
-| **Specificity** | Precisely scoped |
-| **Completeness** | All necessary context and constraints included |
-| **Actionability** | AI can directly execute without asking |
-| **Robustness** | Still works with slightly different inputs |
+| Field | Meaning |
+|-------|---------|
+| **反方最强攻击** | 3 specific arguments against this path (from the perspective of other paths) |
+| **真实反例** | A real-world case where a similar strategy failed, or "未验证" |
+| **翻转条件** | Quantified boundary conditions under which the conclusion reverses |
+| **风险判定** | 可靠 / 有条件 / 高风险 (based on the above analysis) |
 
 ## Intent Recognition
 
@@ -468,8 +469,10 @@ SharpInput/
 ├── SKILL.md                         # Core: 5-stage flow + boundary rules
 ├── references/
 │   ├── output-templates.md          # Output templates (Level 0~3) + adaptive rules
-│   ├── prompt-patterns.md           # Prompting frameworks (CRISPE / CO-STAR)
-│   ├── advanced-techniques.md       # Advanced prompting (CoT/Few-shot/XML/Role-based/Evaluation)
+│   ├── judge-prompt.md              # Judge agent prompt (counter-argument + counter-example + flip conditions)
+│   ├── intent-prompt.md             # Intent agent prompt (intent analysis + context-specific options)
+│   ├── prompt-patterns.md           # Consensus detection & breaking, high-quality question signals
+│   ├── advanced-techniques.md       # Advanced prompting (CoT/Few-shot/XML/Role-based)
 │   ├── self-learning.md             # Self-learning system specification
 │   └── user-preferences.md          # User preference data (auto-maintained)
 ├── README.md
