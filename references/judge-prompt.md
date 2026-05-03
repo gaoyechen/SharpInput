@@ -186,9 +186,19 @@ The Judge returns text in the `=== JUDGE REPORT ===` format. Extract:
 
 ### Fallback: Judge call fails
 
-If the Agent call fails (timeout, error), degrade to inline review:
-- For each path, the main agent writes:
-  - 关键假设: [one sentence — the most fragile assumption]
-  - 风险标注: [one sentence — the biggest risk]
-- Append to each path's output
-- Inform user: "Judge 子代理调用失败，已降级为内联审查。"
+**First failure** → Notify user briefly, retry once with a simplified prompt:
+
+```
+正在重试独立审查（简化模式）…
+```
+
+Simplified retry prompt: Remove the 反方防御 section and exact line formatting requirements from the Judge template. Keep only 反方攻击 (2 论据), 真实反例, 翻转条件, 风险判定.
+
+**Second failure** → Degrade to inline review:
+
+For each path, the main agent writes:
+- 关键假设: [one sentence — the most fragile assumption]
+- 风险标注: [one sentence — the biggest risk]
+
+Append to each path's output. Inform user:
+「独立审查服务未响应，已降级为内联审查。风险判定标的 (*)，仅供参考。」

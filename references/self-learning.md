@@ -1,4 +1,4 @@
-# SharpAsk Self-Learning System
+# SharpInput Self-Learning System
 
 ## Overview
 
@@ -45,7 +45,7 @@ When user combines paths:
 
 ## When to Write
 
-After Stage 5 Step 3 outputs the final question:
+After Stage 3 Step 2 outputs the final question:
 1. Extract all applicable fields from this session
 2. Read `references/user-preferences.md`
 3. Append this session's data to the History section (keep last 10 entries only)
