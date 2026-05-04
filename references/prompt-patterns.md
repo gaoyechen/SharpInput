@@ -79,7 +79,7 @@ content generation — not just the dimension name.
 | `hidden-assumption` | Philosophical Analysis | How does the conclusion change when premises don't hold? Which premises have never been questioned? |
 | `minimalist` | Occam's Razor | If you keep only one element, which one? Does it still hold when stripped to the bone? |
 | `time-horizon` | Future Retrospection | Looking back from 3 years out, what matters most? Where do short-term and long-term optimal solutions conflict? |
-| `role-reversal` | Empathy / Perspective Shift | If you were the other side / user / competitor, what's the most致命 problem you see? |
+| `role-reversal` | Empathy / Perspective Shift | If you were the other side / user / competitor, what's the most fatal problem you see? |
 | `peer-compare` | Porter's Competitive Strategy | What 1-2 peers are most worth comparing against? What is the key differentiator? |
 | `scale-effect` | Complex Systems | What qualitatively changes at 10x scale? What holds at small scale but collapses at scale? |
 

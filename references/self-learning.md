@@ -15,7 +15,7 @@ Store: `references/user-preferences.md` (in the skill directory, NOT workspace m
 | Timestamp | 2026-05-02 |
 | Level used | 3 |
 | Level Gate assigned | 2 (user upgraded) |
-| Intent type | Decision (primary) + Analyze (secondary) |
+| Intent type | Decision (primary) + Analyze (secondary). One of: 理解/决策/生成/分析/探索/诊断/说服/验证/规划/学习/优化/对比/梳理/求助 |
 | User language | zh |
 
 ### Level 2+ Additional
