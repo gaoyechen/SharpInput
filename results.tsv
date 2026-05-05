@@ -1,0 +1,4 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-05-05T03:11	baseline	SharpInput	-	72.6	baseline	-	初始8维评估	dry_run
+2026-05-05T03:14	5476053	SharpInput	72.6	75.0	keep	检查点+边界条件	增加方向确认+工具fallback+矛盾处理	dry_run
+2026-05-05T03:15	433d074	SharpInput	75.0	77.3	keep	工作流+指令具体性	数据流表+MemoryLoad格式+共识检测自包含	dry_run
