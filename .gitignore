@@ -3,3 +3,7 @@
 references/user-preferences.md
 tests/
 test-prompts.json
+
+# darwin-skill optimization artifacts
+darwin-result-card.html
+results.tsv
