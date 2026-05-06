@@ -9,8 +9,8 @@
 [![DARWIN Score](https://img.shields.io/badge/DARWIN%20Score-80.3-2DA44E?style=flat-square)](https://github.com/gaoyechen/SharpInput)
 [![Version](https://img.shields.io/badge/version-v2.1-6B7280?style=flat-square)](#)
 [![License](https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square)](LICENSE)
-[![14 Intents](https://img.shields.io/badge/Intents-14%20Types-8B5CF6?style=flat-square)](#)
-[![3 Roles](https://img.shields.io/badge/Roles-3%20Types-EB9234?style=flat-square)](#)
+[![Intent Recognition](https://img.shields.io/badge/Intent%20Recognition-14%20Types-8B5CF6?style=flat-square)](#)
+[![帮你表达](https://img.shields.io/badge/%E5%B8%AE%E4%BD%A0%E8%A1%A8%E8%BE%BE-EC4899?style=flat-square)](#)
 [![Self-Learning](https://img.shields.io/badge/Self--Learning-On-10B981?style=flat-square)](#)
 
 [![GitHub Stars](https://img.shields.io/github/stars/gaoyechen/SharpInput?style=flat-square&color=yellow)](https://github.com/gaoyechen/SharpInput)
@@ -32,10 +32,37 @@ SharpInput 是你的嘴替。它重新设计你的问题结构，在发送给 AI
 
 ---
 
+## 你甚至不知道自己想问什么
+
+这才是最大痛点。
+
+你脑子里有个模糊的想法，但说不清楚——
+「好像要对比 A 和 B，但又不太确定...」
+「我知道 X 有问题，但问题到底在哪儿？」
+「我卡住了，但说不清卡在哪里」
+
+**SharpInput 的第一步，不是改写你的问题——是先帮你找到真正的问题。**
+
+### 意图自动识别 + 选项引导
+
+你只说一句话，SharpInput 自动识别你的真实意图（14 类），并用选项帮你明确方向：
+
+| 你的原始输入 | SharpInput 识别 + 引导 |
+|-------------|----------------------|
+| "帮我分析下这个方案" | 识别为「分析」，问：「你主要关心风险、收益，还是要看对比？」 |
+| "我想学点新东西" | 识别为「学习」，问：「目标是转行、晋升、还是纯兴趣？时间有多少？」 |
+| "我想做个小工具" | 识别为「生成」，问：「给自己用还是给团队？技术栈有没有限制？」 |
+| "这事怎么推不动" | 识别为「求助」，问：「卡在方向不清、方案不行、还是执行不动？」 |
+
+**说清楚前，先让你想清楚。** 这步做好了，后面的施压才有意义。
+
+---
+
 ## 为什么需要 SharpInput
 
 | 你现在的困境 | SharpInput 给你什么 |
 |-------------|-------------------|
+| 说不清自己想问什么，脑子一团浆糊 | 意图自动识别 + 选项引导，帮你找到真正的问题 |
 | AI 回答太泛，「综合考虑」「因人而异」 | 强制 AI 必须选方向，给出有代价的结论 |
 | 问题问了一圈，发现 AI 在说废话 | 14 种施压策略，让 AI 给出只有深度思考才能产出的答案 |
 | 问 AI 的效果和搜索引擎差不多 | 3 种角色预设注入，迫使 AI 切换到专家/质疑者/跨界者视角 |
