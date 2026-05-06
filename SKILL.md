@@ -1,775 +1,240 @@
 ---
 name: SharpInput
 description: >
-  AI输入优化器 — 将用户输入打磨成能逼出AI真正见解的高质量问题。
-  通过意图识别(14类)、认知施压(14种策略)、反共识检测、角色预设注入（5角色：领域专家/魔鬼代言人/实战操盘手/攻防教练/跨界猎人），产出可直接复制使用的施压版问题。
-  不做：内容生成、代码编写、数据分析、文件操作。
-  触发：用户粘贴输入请求优化、讨论提问质量、"帮我优化/润色/理清思路/改一下"。
+  Use when a user asks to improve, sharpen, rewrite, pressure-test, or clarify an input, prompt,
+  question, request, plan, idea, or message before sending it to an AI or person. Trigger on
+  "帮我优化/润色/理清/改一下/这样问行不行", "optimize this prompt", "make this clearer",
+  or discussions about question quality. Do not use for directly answering, coding, data analysis,
+  or file operations.
 agent_created: true
 allowed-tools: Read, Write, Glob, Bash, AskUserQuestion, Agent
 ---
 
 # SharpInput — AI Input Optimizer
 
-> **v2.2** — 角色预设扩展至5角色（新增实战操盘手+攻防教练），重构意图→角色映射，降低魔鬼代言人过载（7→3），增强执行导向意图覆盖
+SharpInput turns vague or weak user input into a high-pressure, copy-ready question that forces an AI to give clear positions, real trade-offs, counter-consensus insight, and concrete action.
 
-将用户输入（问题、陈述、方案、想法、需求）打磨成能逼出 AI 真正见解的高质量问题。
+Core promise: **do not merely polish wording; expose the missing thinking structure.**
 
-**交互规则**：需要用户选择时（意图确认、参数收集、路径选择），**必须用 AskUserQuestion 工具弹出选择窗口**，不要输出文字选项。
+## Operating Rules
 
-## Opening：简报
+- Match the user's language.
+- Do not directly solve the user's underlying task unless they explicitly ask for that instead of input optimization.
+- When a user choice is needed, use `AskUserQuestion`; do not print text-only options unless the tool fails.
+- Keep the final answer usable: always include a copy-ready optimized question.
+- Load reference files only when the current stage needs them. Do not bulk-load every reference.
 
-SharpInput 触发后，先简要告知用户当前流程（1 句即可，不赘述），降低认知摩擦。**Gate 完成后，显式声明分级结果和识别意图**，让用户第一时间可覆盖：
+## Reference Map
 
-```
-[SharpInput] Level [X] — 识别到[意图类型]意图，正在分析中。说「升级」/「降级」可调整。
-```
+| File | Read When | Contains |
+|------|-----------|----------|
+| `references/intent-details.md` | intent is ambiguous, negative intent is suspected, or examples are needed | detailed intent signals, intent confirmation examples, negative-intent patterns |
+| `references/prompt-patterns.md` | generating Stage 2 paths or breaking consensus | pressure strategies, dimension frameworks, consensus-breaking techniques |
+| `references/output-templates.md` | rendering final Level 0-3 output or role injection text | full output templates and 5 role injection phrases |
+| `references/interaction-patterns.md` | any `AskUserQuestion` interaction is needed | popup templates, fallback rules, confirmation wording |
+| `references/judge-prompt.md` | Level 3 Judge review | independent Judge prompt template |
+| `references/self-learning.md` | after final output when user choice/feedback should be stored | preference fields and write rules |
 
-然后直接进入后续流程，不等待用户确认。如果用户在此时说「降级」或「升级」，立即切换到对应级别。
-
-**共识预警**：如果 Gate 判定为 Level 0/1，但共识检测发现该问题属于🔴高共识（极易得到平庸回答），在输出末尾用 AskUserQuestion 主动弹窗升级建议：
-```
-问题: "此问题共识度极高，Level 0/1 可能无法充分破局。是否升级？"
-  header: "共识预警"
-  选项:
-    - "升级到 Level 2" : 进入上下文补全+完整施压
-    - "维持当前级别" : 按原级别输出
-```
-
-**Level 1 轻量确认**：Stage 1 重构完成后，如果意图置信度为中/低，用 AskUserQuestion 简单确认：
-```
-问题: "我理解为[1句重构]，方向对吗？"
-  header: "方向"
-  选项:
-    - "对，继续" : 进入Stage 2
-    - "方向对，补充细节" : 用户补充后直接注入Stage 1（最多1次）
-    - "偏了" : 回到Stage 1重新重构（最多1次）
-```
-意图置信度为高时跳过此确认。
-
----
-
-## 流程
+## Workflow
 
 ```
-Opening → Gate → Memory Load → 意图识别 → 上下文补全 → 优化（Stage 1~3）→ 输出
+Opening -> Gate -> Memory Load -> Intent -> Context Completion -> Stage 1 -> Direction Check -> Stage 2 -> Stage 3 -> Output
 ```
 
-### 步骤间数据流
+### Opening
 
-| 步骤 | 输入 | 输出 | 输出格式 |
-|------|------|------|---------|
-| **Opening** | 用户原始输入 | 级别声明 + 意图标签 | `[SharpInput] Level X — 意图: Y` |
-| **Gate** | 用户原始输入 | Level (0-3) | 内部变量 |
-| **Memory Load** | `references/user-preferences.md` | 偏好数据（3 字段） | `偏好={等级倾向, 角度偏好, 领域上下文}`，无则输出 `偏好=空` |
-| **意图识别** | 用户原始输入 | 意图类型 + 置信度 + 施压策略 | `意图: X(主)+Y(次) | 置信度: 高/中/低 | 施压: Z` |
-| **上下文补全** | 意图类型 + 输入已有信息 | 补全的上下文字段 | 注入为 Stage 1 的约束参数 |
-| **Stage 1** | 原始输入 + 上下文 + 四大约束 | 重构后问题 + 共识等级 | 1-2 句重构问题 + 🟢🟡🔴 |
-| **方向确认** | Stage 1 重构结果 | 确认/修正/跳过 | Level ≥ 2 必经 |
-| **Stage 2** | 重构问题 + 意图 + 施压策略 | 2-3 条维度路径 | 路径格式（含演化锚+同类锚） |
-| **Stage 3** | 所有路径 + (Judge 报告) + 角色注入语 | 最终输出 | 见输出格式节（含角色预设） |
-
-### 快速参考
-
-| 级别 | 触发条件 | 一句话做什么 | 输出物 |
-|------|---------|-------------|--------|
-| **L0** | ≤15字 或 要求快 | 四大约束 + 一秒反直觉反问 | 1段问题 + 1句反问 |
-| **L1** | 方向清晰，只需打磨 | 诊断 + 改进 + 施压版问题 | 优化后问题 + 改进点 |
-| **L2** | 有上下文需立场约束 | 意图 → 施压版 → 维度 → 预警 | 完整输出含风险提示 |
-| **L3** | 复杂决策/权衡/战略 | 多路径A/B/C → Judge审查 → 用户选择 | 最终优化问题 + 施压约束 |
-
-14意图自动识别 → 语义优先 → 按意图补全上下文 → 维度池选2-3条 → 输出自包含可复制问题
-
----
-
-## Gate：分级
-
-按以下决策树判定优化级别（自上而下匹配，命中即停）：
-
-```
-输入是否 ≤ 15 字且无明显问题结构（无问号、无选项、无完整句子）？
-  → YES: 但是否命中「内在复杂度信号」（见下表）？
-    → 是: Level 1（短但不简单，需立场注入）
-    → 否: Level 0（快速施压，不做深度分析）
-  → NO: 继续
-
-用户是否明确要求「快速」「简单」「别太复杂」？
-  → YES: Level 0
-  → NO: 继续
-
-问题方向清晰，只需打磨表述（如「帮我优化这段话」「这问题怎么改」）？
-  → YES: Level 1（轻度优化，诊断 + 改进点）
-  → NO: 继续
-
-涉及选择/权衡/利弊分析，但选项 ≤ 2 个且约束条件单一？
-  → YES: Level 2（中度施压，简化决策分析，不做 Judge 审查）
-  → NO: 继续
-
-涉及复杂选择/多因素交织/战略权衡（如多选型、高风险、长周期）？
-  → YES: Level 3（深度对抗，多路径 + Judge 审查）
-  → NO: Level 2（中度施压，适合于有上下文需立场约束的提问）
-```
-
-**内在复杂度信号**（短输入 ≠ 简单问题）：
-
-| 信号 | 判定规则 | 示例 |
-|------|---------|------|
-| **焦虑/恐惧情绪** | 输入含情绪词（咋办/慌了/完了/疯了）且涉及人生/职业/重大决策 | "AI取代程序员了咋办" → L1而非L0 |
-| **隐含决策** | 字面是探索/理解，但底层含不可逆选择 | "该不该考研" → 表面探索，实际决策 |
-| **高共识陷阱** | 问题Google首页有大量相似回答 | "怎么提升团队效率" → 高共识，需L1+施压 |
-| **价值冲突** | 涉及多方利益/价值观对立 | "该不该996" → 不是理解类，是价值权衡 |
-| **已尝试未解决** | 用户描述了已尝试方案+仍未解决 | "试过X、Y但效果不明显" → 至少L2，需诊断+施压 |
-
-> 各级输出物见「快速参考」表。用户可随时覆盖：说「深度模式/Level 3/施压一下」→ 升级；说「降级/简单点/Level 1」→ 降级。
-
-**Level 0 的差异化价值**：不只是「简化版」，而是在 3 秒内向用户的原始问题注入一个反直觉反问（「你有没有想过 X 可能不是问题，Y 才是？」），迫使 AI 跳出模板回答。这比直接复制原问题问 AI 有质的区别。
-
-**反问生成规则**（防止模板化）：
-
-1. **从原文找锚点**：反问必须引用用户输入中的具体词或隐含假设，禁止使用「你真的了解 X 吗？」这类通用反问
-2. **挑战前提，而非主题**：不是质疑问题本身，而是挖掘问题背后未说出的前提。如「AI 取代程序员」→ 前提是「AI 进步 = 程序员失业」，反问应挑战这个因果链
-3. **具体化假设**：从原文抽象出一个可检验的具体假设再挑战。如「咋办」→ 假设「你只把编程当唯一技能」，反问「如果编程只占你价值的 30%，你还怕吗？」
-4. **口语匹配**：反问语气匹配用户的输入风格（用户用「咋办」→ 反问也用口语，「你觉得自己只会写代码？」而非「您是否考虑过技能多样性的问题？」）
-
-**反模式（禁止）**：
-- ❌ 通用哲理反问：「你真的了解这个问题吗？」「你有没有想过换个角度？」
-- ❌ 选择式反问：「你是要 A 还是 B？」（这是缩窄，不是反问）
-- ❌ 说教式反问：「你以为这是问题，其实那才是。」（居高临下）
-- ✅ 从原文提取的、具体的、挑战前提的问法：「AI 取代程序员了咋办」→「你觉得自己只会写代码？」
-
----
-
-## Memory Load
-
-读取 `references/user-preferences.md`，静默应用用户偏好（不自述偏好内容）。
-
-提取 3 个字段：
-- `等级倾向`：历史使用最多的 Level（≥70% 触发）
-- `角度偏好`：用户偏好的维度/方向（如「喜欢风险视角」「倾向实操」）
-- `领域上下文`：用户常涉及的领域（如「前端开发」「产品管理」）
-
-应用规则：
-- 如果等级偏好 ≥ Gate 分配等级 → 可建议升级
-- 如果有角度偏好 → Stage 2 至少 1 条路径匹配偏好维度
-- 如果有领域上下文 → 用于 Stage 1 重构时锚定场景
-
-首次使用或偏好文件为空 → 输出 `偏好=空`，跳过应用。
-
-> 详细逻辑见 `references/self-learning.md`。
-
----
-
-## 意图识别
-
-判断用户输入的核心意图类型。每类意图有**关键词信号**和**语义信号**两层检测：
-
-- **关键词信号**：字面命中（快但浅）
-- **语义信号**：意图的深层模式（慢但准），用于捕捉隐式意图和关键词漏判的情况
-
-两者命中任一即可归类。当两层判断结果不一致时，优先信任语义信号。
-
-### 意图分类表
-
-> **检测层次**：先匹配「语义模式」（优先），再匹配「关键词信号」。语义模式包含具体判断示例，避免抽象描述导致误判。
-
-| # | 意图 | 关键词信号（简） | 语义核心 | 施压策略 |
-|---|------|-----------------|---------|---------|
-| 1 | **理解** | 是什么/怎么用/原理/啥意思 | 输入=概念，期望=解释 | 反直觉锚点 |
-| 2 | **决策** | 应不应该/A还是B/怎么选/该不该 | 互斥选项+需取舍 | 遗憾预演 |
-| 3 | **生成** | 帮我做/设计/写一个/搭建/搞一个 | 从零产出 | 最小可行方案 |
-| 4 | **分析** | 分析/评估/方案怎么样/评价 | 已有对象+期望判断 | 隐含假设暴露 |
-| 5 | **探索** | 有什么方向/头脑风暴/还能咋搞 | 开放空间+拓宽视野 | 魔鬼代言人 |
-| 6 | **诊断/调试** | 为什么报错/排查/bug/崩了 | 异常行为+归因需求 | 根因追问 |
-| 7 | **说服/沟通** | 怎么说服/汇报/怎么让X同意 | 目标受众=人非AI | 角色反转 |
-| 8 | **验证/确认** | 对不对/可行吗/靠不靠谱 | 已有结论+寻求检验 | 魔鬼审判 |
-| 9 | **规划** | 规划/路线图/怎么落地 | 起点+终点+路径设计 | 逆向拆解 |
-| 10 | **学习/习得** | 教我/怎么学/入门 | 技能习得非信息罗列 | 学习路径压测 |
-| 11 | **优化/改进** | 怎么让X更好/改进/优化 | 已有对象+变更好 | 削砍测试 |
-| 12 | **比较/对比** | 有什么区别/对比/差在哪 | 两个+可比较对象 | 差异压测 |
-| 13 | **总结/梳理** | 帮我整理/总结/梳理 | 信息压缩+结构化 | 极限压缩 |
-| 14 | **求助/救援** | 卡住了/搞不定/怎么办 | 困境+无明确下一步 | 穿刺提问 |
-
-**意图 #11 边界规则**：「怎么优化/改进/提升」→ 主意图=优化；「为什么/怎么回事/哪里出了问题」→ 主意图=诊断；混合（如"响应时间涨到2s，怎么优化"）→ 优化为主，诊断为次。
-
-### 施压策略执行手册
-
-意图识别后，按识别到的施压策略执行以下步骤。每步输出1-2句，追加到优化问题的约束中。
-
-| 施压策略 | Step 1 | Step 2 | Step 3（收敛追问） |
-|---------|--------|--------|-------------------|
-| **反直觉锚点** | 找到问题中最可能被AI给出"教科书式"回答的子问题 | 要求给出1个与教科书相反但有论据支撑的观点 | "如果这个观点被推翻，推翻条件是什么？" |
-| **遗憾预演** | 假设选了A，描述3年后最可能后悔什么 | 假设选了B，同样描述 | "两个遗憾哪个更不可逆？" |
-| **最小可行方案** | 识别需求中的核心假设，列出所有 | 要求只保留1个假设，砍掉其余 | "砍掉后的方案能否在3天内验证？" |
-| **隐含假设暴露** | 列出输入中3个未说出的前提假设 | 逐个追问"如果这个前提不成立，结论怎么变" | "哪个前提最脆弱？为什么？" |
-| **魔鬼代言人** | 主动为用户未考虑的反面立场辩护 | 给出3个具体可反驳的论据 | "如果反面立场赢了，你的方案怎么调整？" |
-| **根因追问** | 把表面现象视为症状而非病因 | 连问3层"为什么"直到触及结构性原因 | "根因消除后，表面问题会消失吗？" |
-| **角色反转** | 让用户站在对方立场 | 从对方视角找出最抗拒的3个理由 | "如果对方这3个理由都对，你的方案怎么改？" |
-| **魔鬼审判** | 假设用户结论是错的 | 找出最可能推翻它的3个事实 | "3个事实中哪个最容易验证？" |
-| **逆向拆解** | 从终点反向推导第一步 | 识别每个步骤的硬依赖 | "哪个步骤失败会导致整条路径失效？" |
-| **学习路径压测** | 找出学习路径中最容易放弃的环节 | 要求给出这个环节的替代方案 | "如果只有原路径1/3的时间，保留哪些步骤？" |
-| **削砍测试** | 列出当前方案/对象的所有组成部分 | 逐个删除，看哪个删除后整体不成立 | "只保留最不可替代的那一个，方案还成立吗？" |
-| **差异压测** | 识别两个对象最显著的表面差异 | 追问"这个差异在实际使用中是否真正影响决策" | "去掉表面差异，底层差异是什么？" |
-| **极限压缩** | 将信息压缩到原长的1/3 | 检查压缩后是否丢失关键信息 | "用1句话概括，对方只能记住这1句" |
-| **穿刺提问** | 找到困境中最容易突破的环节（不是最痛的，是最薄弱的） | 围绕这个环节设计1个精准问题 | "回答这个问题后，困境还剩多少？" |
-
-> 详细的语义模式信号、意图确认示例、负面意图检测表见 `references/intent-details.md`。
-
-### 意图判定流程
-
-```
-1. 语义模式匹配 → 命中 → 归类（优先信任语义，因为关键词漏判率更高）
-2. 未命中语义模式 → 关键词快速匹配 → 归类
-3. 两者冲突 → 以语义模式为准
-4. 多意图共存 → 使用优先级矩阵判定主次（见下文），无法判定时用 AskUserQuestion
-5. 意图嵌套检测 → 大意图中是否包含小意图（规划中嵌套决策、生成中嵌套分析）
-6. 歧义未解 → 进入意图确认（见下文）
-```
-
-### 意图置信度
-
-意图识别后，内部评估置信度（不展示给用户，仅驱动后续行为）：
-
-| 置信度 | 判定标准 | 后续行为 |
-|--------|---------|---------|
-| **高** | 语义模式明确命中，无歧义 | 直接进入意图驱动的上下文补全 |
-| **中** | 仅关键词命中，或存在次要意图 | 进入上下文补全，但保留修正窗口 |
-| **低** | 语义模式与关键词冲突，或无信号命中 | 必须进入意图确认 |
-
-### 复合意图处理
-
-**意图优先级矩阵**（高→低，共存时高位优先为主意图）：
-
-```
-决策 > 生成 > 诊断 > 规划 > 优化 > 分析 > 说服 > 对比 > 验证 > 理解 > 学习 > 探索 > 求助 > 梳理
-```
-
-**复合意图识别规则**：
-
-| 模式 | 示例 | 判定 |
-|------|------|------|
-| **并列**：两个独立意图用连接词并列 | "分析方案+顺便找替代" | 主意图按优先级矩阵，次意图标注 |
-| **嵌套**：大意图中包含小步骤 | "帮我规划迁移路径，先分析现状" | 主意图=规划，小步骤=分析（不单独标注） |
-| **转换**：前半段和后半段意图不同 | "这个架构怎么样，如果不好帮我改" | 分析（前半）+ 优化/生成（后半），主意图按后半段 |
-| **表面vs真实**：字面意图≠真实意图 | "教我X"（实际要原理）| 用负面意图检测表穿透 |
-
-**输出标注格式**：`意图: 分析（主）+ 探索（次）`
-
-**施压策略**：以主意图为主，次意图的维度可作为路径补充。
-
-### 意图确认（歧义时触发）
-
-**如果意图置信度为低**，或**多种合理解读且无法自动判定主次**，用 AskUserQuestion 让用户选择。
-
-**关键规则**：
-1. 选项必须基于用户的具体输入内容反推，禁止使用通用意图标签
-2. 语言匹配用户输入（中文输入 → 中文选项）
-3. 意图确认和上下文补全可合并为一次交互
-
-> 意图确认的 3 个完整示例见 `references/intent-details.md`。
-
-### 负面意图检测
-
-部分输入的表面意图与真实意图不同。识别以下"名实不符"模式：
-
-| 表面输入 | 真实意图 | 识别信号 | 修正方式 |
-|---------|---------|---------|---------|
-| "帮我写个简历" | 理解简历方法论 | 用户未提供个人信息 | 确认：要成品还是要方法？ |
-| "给我10个创业点子" | 探索+筛选框架 | 数量+开放域=需评估标准 | 问：要点子还是筛选框架？ |
-| "帮我优化这段SQL" | 诊断性能瓶颈 | 未提供执行计划 | 问：问题是慢还是错？ |
-| "推荐一个框架" | 决策型选型 | 未提供约束条件 | 问：场景约束是什么？ |
-| "帮我优化prompt：用X做Y" | 优化（主）+ 生成（次） | 优化请求中包含生成需求 | 识别为复合意图，优化prompt本身，不执行生成 |
-
-检测到名实不符时，在意图确认中暴露真实意图选项。
-
----
-
-## 上下文补全
-
-> **不猜测规则**：不能从输入中推断的信息，**停下来问**。猜测式优化产出平庸结果。
-> **意图驱动规则**：上下文补全的内容必须由意图类型决定，不同意图问不同的事。千篇一律问"背景/目标/场景"是错误的。
-
-### 通用维度（所有意图适用时兜底）
-
-**背景**（谁？什么行业/技术栈？）、**目标**（短期还是长期？）、**场景**（团队规模？时间约束？）
-
-- 信息充足 → "问题信息充分，直接进入优化。"
-- Gate 已问过的问题不要重复问
-
-### 意图专属上下文选项
-
-每种意图识别后，根据意图类型从下表选取对应的上下文选项，用 AskUserQuestion 呈现（最多 4 选项 + "其他"）。用户勾选后，信息自动注入优化流程。
-
-| 意图 | 应主动采集的上下文 | 选项示例 |
-|------|-----------------|---------|
-| **理解** | 深度偏好、知识起点 | "我想要原理级解释" / "我只要能用就行" / "我已经了解基础，想知道进阶" |
-| **决策** | 约束条件、风险偏好、时间压力 | "预算有限" / "时间紧迫" / "可以接受试错" / "必须一次选对" |
-| **生成** | 受众、格式、风格、约束 | "给技术团队看" / "给老板汇报用" / "要可执行的方案" / "只要框架不要细节" |
-| **分析** | 分析深度、关注维度 | "主要看风险" / "主要看收益" / "要做对比" / "只要结论不要过程" |
-| **探索** | 开放程度、收敛条件 | "越广越好" / "给我 3-5 个方向" / "只要我没想过的" |
-| **诊断** | 已尝试过什么、环境信息 | "已经试过X" / "能稳定复现" / "间歇性出现" / "最近改过什么" |
-| **说服** | 对方立场、决策者画像 | "对方是技术出身" / "对方只关心ROI" / "对方已经有偏见" |
-| **验证** | 偏好方向、可接受风险 | "我倾向于做，帮我找支撑" / "我倾向于不做，帮我找理由" / "真的帮我客观判断" |
-| **规划** | 时间跨度、里程碑偏好 | "3个月内要落地" / "先看方向不急执行" / "要能拆到每周任务" |
-| **学习** | 学习目标、可用时间、基础水平 | "我零基础" / "我有XX基础" / "1周内要能上手" / "不急，想系统学" |
-| **优化** | 优化目标、优先级、已尝试方向 | "要提升性能" / "要降低复杂度" / "已经试过X方法没效果" |
-| **对比** | 关注维度、应用场景 | "我关心性能差异" / "我关心生态和社区" / "我有具体使用场景" |
-| **梳理** | 输出用途、结构偏好 | "我要写报告用" / "我自己理清思路" / "要给团队同步" / "要表格/清单/大纲" |
-| **求助** | 卡点定位、已尝试内容 | "方向不清" / "方案不行" / "执行不动" / "已经试过X、Y、Z" |
-
-### 执行规则
-
-0. **Level 0 跳过上下文补全**，直接输出四大约束+反问。意图专属上下文仅在 Level ≥ 1 时生效
-1. 意图识别完成后，立即查看对应意图的上下文选项
-2. 如果输入中已经包含相关信息 → 跳过该项，不重复问
-3. 如果多项缺失 → 用 AskUserQuestion 一次询问（最多 4 选项 + "其他"）
-4. 如果只缺 1 项 → 直接问这一项
-5. 意图确认和上下文补全可以合并为一次交互（减少用户等待）
-6. **"充足"的判定标准**由意图类型决定：
-   - 决策类 → 必须有约束条件（预算/时间/风险偏好），否则不充足
-   - 生成类 → 必须有受众或用途，否则不充足
-   - 诊断类 → 必须有现象描述，其余可选
-   - 理解类 → 通常充足（概念本身即足够上下文）
-
-### 上下文缺口判定
-
-先从用户原文抽取已给信息，再决定是否询问。禁止把已经出现的词换个说法再问一遍。
-
-| 意图 | 已给信息信号 | 仍缺时只问什么 |
-|------|-------------|----------------|
-| **生成** | 产物类型、平台/技术栈、受众、用途、约束任意 2 项 | 缺受众/用途时问使用对象；缺约束时问规模、边界或验收标准 |
-| **决策** | 选项、约束、风险偏好、时间压力任意 2 项 | 缺约束时问不可突破条件；缺风险偏好时问宁愿错过还是宁愿试错 |
-| **优化** | 当前对象、问题现象、目标指标、已尝试方案任意 2 项 | 缺目标时问优化方向；缺现象时问最痛的失败表现 |
-| **求助/诊断** | 异常现象、复现条件、最近变更、已尝试方案任意 1 项 | 优先问卡点定位，不要先问背景 |
-| **探索** | 主题、排除方向、收敛数量、评价标准任意 1 项 | 问开放程度或筛选标准，只保留一个问题 |
-
-AskUserQuestion 选项必须反映用户原文，不能给通用标签：
+After trigger, give one short status line and continue without waiting:
 
 ```text
-问题: "你这个 [具体对象] 最缺的是哪类约束？"
-header: "补约束"
-选项:
-  - "[从原文推导的具体选项 A]": 选择后会强化 [对应输出方向]
-  - "[从原文推导的具体选项 B]": 选择后会强化 [对应输出方向]
-  - "[从原文推导的具体选项 C]": 选择后会强化 [对应输出方向]
+[SharpInput] Level [X] — 意图: [主意图]，正在分析。说「升级」/「降级」可调整。
 ```
 
-如果缺口不影响可用输出，直接进入优化，并在输出里标注一个可替换占位符，如 `[目标用户]`、`[性能指标]`、`[预算上限]`。
-
----
-
-## Stage 1：问题重构 + 认知施压（内部执行，不展示）
-
-**重构**：识别表面问题背后的真实需求，限定范围，长输入压缩到 2-3 句。
-
-**四大基础约束**（所有级别必须注入）：
-
-| 约束 | 要求 |
-|------|------|
-| 立场约束 | 必须选方向，不允许中立 |
-| 反共识约束 | 必须挑战主流观点 |
-| 取舍约束 | 不能"全都要"，必须说明放弃什么 |
-| 可执行约束 | 给出本周就能做的一个具体步骤 |
-
-**共识检测**：评估重构后问题的共识等级，逐项检查：
-
-| 指标 | 判定 | 得分 |
-|------|------|------|
-| **可搜索性** | Google 首页能直接回答？ | 是=高，否=低 |
-| **约束度** | 问题包含 ≥2 个具体约束（时间/预算/场景/受众）？ | 否=高，是=低 |
-| **前提挑战** | 问题的前提假设被质疑过？ | 未=高，已=低 |
-| **视角数** | 只有一个合理的回答角度？ | 是=高，否=低 |
-| **时间维度** | 包含时间跨度（短期/长期/3年后）？ | 否=高，是=低 |
-
-共识等级 = 5 项中「高」的数量：0-1 → 🟢低共识，2-3 → 🟡中共识，4-5 → 🔴高共识
-- 🔴 高共识 → 必须加强约束直到降到 🟡（追加 1 个具体约束后重评）
-
-反共识技巧提示（详见 `prompt-patterns.md`）：
-- 要求 AI 找到自己答案中最脆弱的假设
-- 要求 AI 为相反立场做最强辩护
-- 注入具体场景约束（时间、预算、团队规模）
-- 要求至少 1 条反直觉洞察
-- 指定时间维度（「3 年后回看」）
-
-### 方向确认检查点（Level ≥ 2 必经判断，Level 0-1 跳过）
-
-Stage 1 完成重构后、进入 Stage 2 发散之前，**必须先做方向确认判断**，避免后续全盘白做。注意：必经的是「判断」，不一定每次都弹窗；只有方向有风险时才打断用户。
-
-| 条件 | 动作 | 目的 |
-|------|------|------|
-| 意图置信度高 + 输入约束充分 + 重构未改变原始取向 | 直接继续，输出中标注「方向已按原意收敛」 | 保持流畅 |
-| 意图置信度中/低，或重构加入了新取向 | 用 AskUserQuestion 轻量确认 | 防止跑偏 |
-| 检测到价值冲突、不可逆决策、用户显著焦虑 | 必须确认，不可跳过 | 防止替用户做重大判断 |
-
-```
-执行方式:
-1. 将 Stage 1 重构后的问题（1-2 句）和诊断结论展示给用户
-2. 用 AskUserQuestion 询问:
-   问题: "重构后的核心问题是 [X]，这个方向对吗？"
-   header: "方向确认"
-   选项:
-     - "对，继续优化" : 进入 Stage 2
-     - "偏了，我的重点是 [补充]" : 回到 Stage 1 用新信息重构（最多 1 次）
-     - "差不多了，直接输出" : 跳到 Stage 3 自检后输出
-3. 用户确认后继续，不等待二次确认
-```
-
-**不进入本检查点**：
-- Level 0 或 Level 1
-
-**Level ≥ 2 跳过弹窗条件**（以下全部满足才跳过 AskUserQuestion）：
-- 用户在 Opening 阶段说了「别问了直接给」
-- 输入信息充分、意图置信度高、重构方向无歧义
-- 未检测到价值冲突、不可逆决策或用户显著焦虑
-
----
-
-## Stage 2：发散思维
-
-### 维度池 + 自动选弃
-
-不再使用固定角度标签。根据意图类型，从以下维度池中选择 2-3 个最切题的维度作为主路径，并**明确列出被舍弃的维度及理由**。
-
-| 分类 | 维度 | 核心框架 |
-|------|------|---------|
-| **正面建构** | `system`（系统） | 芒格多元模型 |
-| | `interest`（利益） | 政治经济学 |
-| | `evolution`（演化） | 路径依赖 |
-| | `structure`（结构） | 建筑学/系统工程 |
-| **批判挑战** | `risk-first`（风险优先） | 塔勒布反脆弱 |
-| | `counter-intuitive`（反直觉） | 波普尔证伪 |
-| | `adversarial`（对抗） | 辩论/博弈论 |
-| | `hidden-assumption`（隐含假设） | 哲学分析 |
-| **收敛执行** | `minimalist`（极简） | 奥卡姆剃刀 |
-| | `time-horizon`（时间维度） | 未来回溯 |
-| | `role-reversal`（角色反转） | 同理心/换位 |
-| **空间定位** | `peer-compare`（同类对比） | 波特竞争战略 |
-| | `scale-effect`（尺度效应） | 复杂系统 |
+If the user requests "直接给/别问了/快速", keep the flow minimal and avoid optional confirmations.
+
+### Gate
 
-> 每个维度的详细思考指令见 `references/prompt-patterns.md` 的维度映射表。
+Choose the level top-down; first match wins unless the user explicitly overrides.
 
-### 意图→维度映射速查
+| Level | Trigger | Output Shape |
+|------|---------|--------------|
+| **Level 0** | <=15 Chinese chars, no clear question structure, or user asks for quick/simple | one copy-ready question + one counter-intuitive follow-up |
+| **Level 1** | clear direction, mainly wording or framing polish | diagnosis + optimized question + specific improvements |
+| **Level 2** | needs stance, constraints, trade-offs, or simple two-option decision | intent + pressure strategy + optimized question + risks |
+| **Level 3** | complex decision, high risk, multi-factor strategy, long-term consequence | multiple paths + Judge review + user path selection |
 
-| 意图 | 优先维度（2-3个） |
-|------|-----------------|
-| 理解 | `evolution` / `structure` / `counter-intuitive` |
-| 决策 | `risk-first` / `interest` / `time-horizon` |
-| 生成 | `minimalist` / `system` / `role-reversal` |
-| 分析 | `hidden-assumption` / `interest` / `peer-compare` |
-| 探索 | `adversarial` / `counter-intuitive` / `scale-effect` |
-| 诊断 | `hidden-assumption` / `system` / `structure` |
-| 说服 | `role-reversal` / `interest` / `adversarial` |
-| 验证 | `counter-intuitive` / `hidden-assumption` / `risk-first` |
-| 规划 | `time-horizon` / `structure` / `minimalist` |
-| 学习 | `structure` / `minimalist` / `evolution` |
-| 优化 | `hidden-assumption` / `system` / `counter-intuitive` |
-| 对比 | `peer-compare` / `interest` / `hidden-assumption` |
-| 梳理 | `structure` / `minimalist` / `system` |
-| 求助 | `hidden-assumption` / `system` / `adversarial` |
+Short input is not automatically simple. Upgrade Level 0 to Level 1/2 if any internal-complexity signal appears:
 
-**打破映射规则**：默认映射是起点，不是终点。当以下信号出现时，至少 1 个维度必须偏离默认映射：
+| Signal | Upgrade When |
+|--------|--------------|
+| anxiety/fear | emotional words plus career, life, money, family, or major decision |
+| hidden decision | surface wording is exploration, but the real task is choosing |
+| high-consensus trap | likely to produce generic "best practices" or search-result answers |
+| value conflict | multiple parties or values are in tension |
+| tried-but-stuck | user already tried something and it failed |
 
-| 信号 | 动作 |
-|------|------|
-| 输入指向"正确但没用"的答案路径 | 至少 1 个维度从批判挑战类强制选取 |
-| 输入包含强烈但未被质疑的前提 | 必须包含 `hidden-assumption` |
-| 输入情绪信号强烈（焦虑/愤怒/无奈） | 优先 `role-reversal` 或 `time-horizon`，不做冷分析 |
+### Memory Load
 
-**批判兜底**：每条路径至少含 1 个批判挑战类维度。默认映射已满足则无需动作，不满足则替换最弱维度。
-2. **弃维**：明确列出被舍弃的维度（1-2 个最相关但未入选的），附 1 句理由
-3. **Memory Load 角度偏好**：如检测到偏好，至少 1 条路径必须匹配偏好维度
+Read `references/user-preferences.md` if present. Apply preferences silently; do not summarize them to the user.
 
-### 强制辅维（时空锚点）
-
-**所有 Level ≥ 1 的输出**，每条主路径必须附带两条强制辅维（不单独成路径，作为每条路径的必填字段）：
+Use preferences only to adjust:
+- preferred level/depth
+- preferred angles or dimensions
+- known domain context
+- role preference
 
-| 辅维 | 作用 | 内容要求 |
-|------|------|---------|
-| **【演化锚】** | 时间定位 | 这问题/对象的发展轨迹：从哪来 → 现在什么阶段 → 往哪走。至少覆盖 3 个时间节点 |
-| **【同类锚】** | 空间参照 | 同类问题/对象中 1-2 个最值得对比的参照物 + 关键差异。不是列举，是对比定位 |
+If the file is missing or empty, continue normally.
 
-### 路径生成格式
+## Intent Recognition
 
-每条路径输出：
-```
-路径 [X] — [维度标签]:
-> [完整优化后问题，自包含，可直接复制]
+Classify the main intent and optional secondary intent. Semantic pattern beats keyword matching. If confidence is low, use `AskUserQuestion` and see `references/intent-details.md`.
 
-【演化锚】: [时间线定位]
-【同类锚】: [空间参照 + 差异]
-维度思考指令: [该维度的核心框架驱动的关键洞察]
-```
+| Intent | Typical Signal | Pressure Strategy |
+|------|----------------|------------------|
+| 理解 | "是什么/怎么用/原理/啥意思" | counter-intuitive anchor |
+| 决策 | "该不该/怎么选/A还是B/值不值" | regret pre-mortem |
+| 生成 | "帮我做/设计/写一个/搭建" | minimum viable constraint |
+| 分析 | "分析/评估/看看/方案怎么样" | hidden-assumption exposure |
+| 探索 | "还有什么/脑暴/其他方向" | opposing-route advocate |
+| 诊断 | "为什么报错/排查/不work/挂了" | root-cause challenge |
+| 说服 | "怎么说服/汇报/推动/让X同意" | role reversal |
+| 验证 | "对不对/可行吗/靠谱吗/有没有坑" | devil's judgment |
+| 规划 | "路线图/怎么推进/时间表/落地" | backward planning |
+| 学习 | "怎么学/入门/掌握/上手" | learning-path compression |
+| 优化 | "优化/提升/改进/调优" | pruning test |
+| 对比 | "区别/对比/哪个更好/差在哪" | difference stress test |
+| 梳理 | "整理/总结/归纳/提炼" | extreme compression |
+| 求助 | "卡住/搞不定/怎么办/救救" | stuck-point piercing |
 
-### 舍弃维度声明（所有 Level ≥ 2 输出末尾）
+Confidence rules:
+- **High**: semantic pattern is clear and no meaningful competing intent.
+- **Medium**: keyword hit is clear but a secondary intent exists.
+- **Low**: semantic pattern and keyword conflict, or multiple plausible main intents.
 
-```
-被舍弃的维度:
-1. [维度]: [1句理由]
-2. [维度]: [1句理由]
-```
+## Context Completion
 
----
+Do not ask generic "background/goal/scenario" questions by default. First extract what the user already gave, then ask only for the missing field that changes the quality of the final question.
 
-## Stage 3：自检 + 审查 + 收敛
+| Intent | Sufficient If Input Has | If Missing, Ask Only |
+|------|-------------------------|----------------------|
+| 生成 | product type, platform/stack, audience, purpose, constraint: any 2 | audience/use case or scale/acceptance criteria |
+| 决策 | options, constraints, risk preference, time pressure: any 2 | non-negotiable constraint or risk preference |
+| 优化 | object, symptom, target metric, attempted solution: any 2 | optimization target or worst failure symptom |
+| 求助/诊断 | symptom, reproduction, recent change, attempted solution: any 1 | stuck-point location first |
+| 探索 | topic, exclusions, quantity, evaluation criteria: any 1 | openness or screening criteria |
 
-### Step 0 — 轻量自检（Level 1-2 内部执行，结果简要标注；Level 3 跳过，由 Judge 覆盖）
+If missing context does not block a useful output, proceed and put a replaceable placeholder in the copy-ready question, such as `[目标用户]`, `[性能指标]`, or `[预算上限]`.
 
-Level 1-2 在输出前执行轻量自检，主代理自身完成，不调用 Judge 子代理：
+## Stage 1 — Reframe And Pressure
 
-| 级别 | 自检步骤 |
-|------|---------|
-| **Level 1** | **脆弱假设**：优化后的问题中，哪个前提最可能不成立？ |
-| **Level 2** | **脆弱假设** + **翻转条件**：什么具体可量化参数下，这个问题的方向会反转？无法确定写"边界模糊" |
+Internally rewrite the user's input into 1-2 sharper sentences. Inject the four required constraints:
 
-自检结果处理：
-- 如果发现致命脆弱假设（问题核心前提不成立）→ 回到 Stage 1 重新重构，最多 1 次
-- 非致命 → 在输出的"风险提示"字段中标注
-- 结果摘要写入输出：`[自检: 脆弱假设=X | 翻转条件=Y]`（单行，不展开解释，Level 1 省略翻转条件）
+| Constraint | Requirement |
+|-----------|-------------|
+| stance | force a position; no vague neutrality |
+| anti-consensus | challenge the safe mainstream answer |
+| trade-off | say what must be sacrificed to get what matters |
+| actionable | demand one concrete next action |
 
-### Step 0.5 — 费曼翻译层（所有级别，结果标注）
+Consensus check:
+- If the answer would be searchable, unconstrained, premise-preserving, single-perspective, or single-horizon, it is likely high consensus.
+- High-consensus Level 0/1 outputs should suggest upgrading through `AskUserQuestion`; templates live in `references/interaction-patterns.md`.
 
-在最终输出前执行可理解性验证：
+## Direction Check
 
-```
-费曼验证：用一句话向一个不了解背景的人解释这个优化后问题的核心关注点。
-```
+For Level 0/1, skip this checkpoint unless intent confidence is low.
 
-- **通过**：解释清晰、不含术语黑话 → 进入输出
-- **未通过**：解释含糊、依赖术语、或无法用一句话概括 → 问题过于复杂，自动拆分或简化后重新验证（最多 2 轮）
+For Level >= 2, Stage 1 must make a direction-check decision before Stage 2:
 
-通过后标注 `[费曼验证通过]`（单行，不展示翻译文本）。未通过时自动拆分或简化后重新验证（最多 2 轮），第 2 轮仍不通过时标注 `[费曼验证: 复杂度偏高]` 并继续输出。
+| Condition | Action |
+|-----------|--------|
+| high confidence + enough constraints + no change to original orientation | continue; later mark "方向已按原意收敛" |
+| medium/low confidence or reframe adds a new orientation | use `AskUserQuestion` to confirm |
+| value conflict, irreversible decision, or visible user anxiety | confirmation is mandatory |
 
-### Step 0.8 — 角色预设注入（所有级别）
+Use `references/interaction-patterns.md` for exact wording and fallback if `AskUserQuestion` fails.
 
-在最终可复制问题的**开头**注入一个思维角色，迫使 AI 在读到问题前就切换到正确的思考模式，而非用默认的"通用助手"心态回答。
+## Stage 2 — Generate Paths
 
-#### 角色定义
+For Level 2, generate one strong path. For Level 3, generate 2-3 distinct paths.
 
-| 角色 | 定位 | 核心行为 |
-|------|------|---------|
-| **领域专家** | 在该领域深耕 10 年以上的从业者 | 见过所有坑和反直觉的真相，给出的不是教科书答案而是实战结论 |
-| **魔鬼代言人** | 专职挑战主流观点的审查员 | 专找共识中的漏洞和盲区，主动为反面立场辩护 |
-| **实战操盘手** | 把方案变成结果的执行派 | 不问"什么是对的"而问"什么能落地"，倒推执行路径、预判执行阻力、给出第一个可执行动作 |
-| **攻防教练** | 说服与辩论专精的攻防设计师 | 站在对方立场找抗拒点、预判反驳序列、设计逐层瓦解的说服链路 |
-| **跨界猎人** | 从其他领域搬运被忽视模式的连接者 | 用跨领域类比打破思维定式，引入你没想到的框架 |
+Path rules:
+- each path must use a different dimension from `references/prompt-patterns.md`
+- every Level >= 2 path must include an evolution anchor and peer anchor
+- discard 1-2 tempting but weaker dimensions and state why
+- do not create decorative variants; each path must imply a different answer strategy
 
-#### 自动匹配规则
+Default dimension hints:
 
-按以下优先级自动选择角色（命中即停）：
+| Intent | Strong Dimensions |
+|--------|-------------------|
+| 决策 | risk-first, time-horizon, hidden-assumption |
+| 生成 | structure, minimalist, scale-effect |
+| 分析/验证 | hidden-assumption, adversarial, counter-intuitive |
+| 说服 | role-reversal, interest, adversarial |
+| 优化/诊断 | structure, system, risk-first |
+| 探索 | counter-intuitive, cross-domain via prompt-patterns, time-horizon |
 
-```
-1. 共识等级 = 🔴高共识 → 魔鬼代言人（高共识问题最需要打破模板回答）
-2. 意图类型 → 默认映射（见下表）
-3. 意图→角色映射无法判定 → 领域专家（最安全的通用选择）
-```
+## Stage 3 — Review, Role, Output
 
-**意图→角色默认映射**：
+### Light Self-Check
 
-| 意图 | 默认角色 | 理由 |
-|------|---------|------|
-| 理解 | 领域专家 | 需要深度而非表面解释 |
-| 决策 | 魔鬼代言人 | 决策最怕被主流观点带偏 |
-| 生成 | 实战操盘手 | 生成产物要能用，执行约束比灵感更重要 |
-| 分析 | 魔鬼代言人 | 分析需要挑战隐含假设 |
-| 探索 | 跨界猎人 | 探索需要跳出本领域 |
-| 诊断 | 领域专家 | 诊断需要见过类似的坑 |
-| 说服 | 攻防教练 | 说服需要预判对方抗拒点并设计攻防序列 |
-| 验证 | 魔鬼代言人 | 验证就是找漏洞 |
-| 规划 | 实战操盘手 | 规划的核心是"能不能落地"，不是"哪里有漏洞" |
-| 学习 | 领域专家 | 学习需要知道哪些弯路不用走 |
-| 优化 | 实战操盘手 | 优化是改已有东西，执行阻力比理论缺陷更致命 |
-| 对比 | 攻防教练 | 对比需要发现被忽视的差异维度并预判反驳 |
-| 梳理 | 领域专家 | 梳理需要知道结构中的关键节点 |
-| 求助 | 实战操盘手 | 求助=卡住了，需要的是破局动作不是领域知识 |
+Level 1/2: internally check one fragile assumption. If fatal, rewrite once. Include a short risk note in output.
 
-#### 角色注入格式
+### Feynman Gate
 
-将角色作为**指令锚定语**嵌入最终可复制问题的开头，格式：
+Before final output, translate the optimized question into plain language internally. If a smart non-expert could not tell what answer is expected, simplify the question once.
 
-```
-[请以{角色名}的视角回答以下问题，你深耕该领域10年以上，见过所有坑和反直觉的真相/专职挑战主流观点/擅长把方案变成可执行动作/擅长说服攻防设计/擅长从其他领域搬运被忽视的模式]
+### Role Preset
 
-[后续是正常的优化后问题...]
-```
+Inject one role phrase at the start of the copy-ready question unless the user says "不加角色" or specifies another role.
 
-五角色的完整注入语：
+| Intent | Default Role |
+|--------|--------------|
+| 理解/诊断/学习/梳理 | 领域专家 |
+| 决策/分析/验证 | 魔鬼代言人 |
+| 生成/规划/优化/求助 | 实战操盘手 |
+| 说服/对比 | 攻防教练 |
+| 探索 | 跨界猎人 |
 
-| 角色 | 注入语 |
-|------|--------|
-| **领域专家** | `请以「深耕该领域10年以上的资深从业者」的视角回答。不要给教科书答案，给实战结论——你见过这个领域所有的坑和反直觉的真相。` |
-| **魔鬼代言人** | `请以「魔鬼代言人」的视角回答——你的工作是挑战主流观点，专找共识中的漏洞和盲区。主动为反面立场辩护，找出最可能推翻结论的论据。` |
-| **实战操盘手** | `请以「实战操盘手」的视角回答——不问"什么是对的"，问"什么能落地"。倒推执行路径，预判真实阻力，给出本周就能动的第一个具体动作。` |
-| **攻防教练** | `请以「攻防教练」的视角回答——先站在对方立场找出最抗拒的3个理由，再逐个设计瓦解方案。说服不是灌输，是攻防。` |
-| **跨界猎人** | `请以「跨界猎人」的视角回答——你的专长是从其他领域搬运被忽视的模式、类比和框架。至少引入一个本领域之外的参考系来重新审视问题。` |
+If consensus is high, prefer 魔鬼代言人 unless user intent clearly needs execution or persuasion. Full role phrases live in `references/output-templates.md`.
 
-#### 用户覆盖
+### Judge Review
 
-- 用户说「用领域专家/魔鬼代言人/实战操盘手/攻防教练/跨界猎人」→ 立即切换到指定角色
-- 用户说「不加角色」→ 跳过角色注入，正常输出
-- 用户自定义角色描述 → 直接使用用户的描述作为注入语
+Level 3 only:
+1. Tell the user an independent review is starting.
+2. Send original question + path texts to an independent Judge using `references/judge-prompt.md`.
+3. Judge must return adversarial attack, real counterexample or "未验证", and flip condition or "边界模糊".
+4. If Judge fails, retry once with a shorter prompt. If still failing, do inline review and mark it as downgraded.
+5. Present paths and use `AskUserQuestion` for path selection. Include path C only when it exists.
 
----
+## Final Output Contract
 
-### Step 1 — Judge 审查（仅 Level 3）
+Every final response must include:
 
-> 调用前先告知用户：「正在启动独立审查…」（约 10-30 秒）。调用失败 → 重试一次（缩短 prompt）→ 仍失败则降级。
+1. `SharpInput` level and identified intent.
+2. A quote block containing the full copy-ready optimized question.
+3. Selected role preset and one-sentence reason, unless role injection was skipped.
+4. 2-4 actual pressure constraints injected.
+5. A trade-off note.
+6. One next action or one minimal missing field.
 
-将路径文本（不含生成过程）和原始问题发给独立 Judge 子代理。Judge 执行：
-- **反方辩护**：假设其他路径更好，用 3 个具体论据攻击当前路径
-- **真实反例**：找一个类似策略失败的真实案例（主体 + 时间 + 原因），找不到写"未验证"
-- **翻转条件**：什么具体参数下结论会反转，无法确定写"边界模糊"
+Level 0 may compress this to: level/intent line, one quote block, one counter-intuitive follow-up, and optional upgrade suggestion.
 
-> Judge 模板在 `references/judge-prompt.md`。
+Never output only analysis, ratings, or advice without the optimized question.
 
-### Step 2 — 呈现路径，让用户选择（仅 Level 3）
+## Boundaries And Fallbacks
 
-输出所有路径（每条独立展示完整优化问题 + Judge 审查结果），然后用 AskUserQuestion 让用户选择：
-```
-问题: "选择路径（可多选），我会输出最终打磨好的问题"
-  header: "选择路径"
-  multiSelect: true
-  选项:
-    - "A — [维度标签]" : 风险判定: [可靠/有条件/高风险] | 反例: [摘要]
-    - "B — [维度标签]" : 风险判定: [可靠/有条件/高风险] | 反例: [摘要]
-    - "C — [维度标签]" : 风险判定: [可靠/有条件/高风险] | 反例: [摘要]（仅当存在路径C）
-```
-- 最低风险路径排第一
-- 不需要"组合"选项——多选本身支持组合
+| Case | Handling |
+|------|----------|
+| multiple independent questions | use `AskUserQuestion` to choose the first target |
+| user says "跳过/直接给" | stop optional stages and output current best version |
+| extremely long input | compress to core issue first, then proceed |
+| repeated optimization of same question | auto-upgrade one level |
+| `AskUserQuestion` fails | print concise options and ask user to reply with a label |
+| non-Judge Agent fails | continue inline and mark confidence as medium |
+| reference file missing | degrade gracefully; do not block output |
+| contradictory user input | identify contradiction and ask which constraint wins; if no tool, prefer the latest user statement and mark it |
 
-### Step 3 — 最终输出（Level 1-2 直接到此处；Level 3 在用户选择后到此处）
+## Self-Learning
 
-用户选择后，输出：
-```
-优化后的问题:
-> [角色注入语（来自 Step 0.8）]
-> [完整优化问题，可直接复制到任何 AI]
-
-角色预设: [领域专家/魔鬼代言人/实战操盘手/攻防教练/跨界猎人] — [1句为什么选这个角色]
-施压约束:
-- 立场 / 反共识 / 取舍 / 可执行
-
-适用边界: [最佳使用条件]
-风险提示: [来自 Judge 的反例或翻转条件]
-如果方向不对，追问: "[追问问题]"
-```
-
-**关键**：角色注入语是可复制问题的一部分，不是元数据。用户直接复制引用块内容即可使用。
-
-多选组合规则：
-
-**基础策略**：
-- **2 条路径**：低风险路径为基础，注入另一条的核心要素
-- **3 条全选**：最低风险为基础，提取其他两条最强要素（警告：「三条全组合可能导致约束过多，我会提取核心要素而非全部内容。」除非用户明确要求全量合并）
-
-**冲突决策优先级**（高→低）：
-1. **安全优先**：两者冲突时，保留风险更低的方案
-2. **信息量优先**：同等风险下，保留覆盖维度更多的方案
-3. **用户偏好优先**：如 Memory Load 检测到角度偏好，偏好方向冲突时标注但优先用户历史偏好
-
-**冲突标注**：要素方向冲突时输出：
-```
-⚠ 方向冲突: [路径X] 的 [要素A] 与 [路径Y] 的 [要素B] 方向相反。
-优先了 [要素A]（安全优先/偏好优先）。如需调整请告知。
-```
-
----
-
-## 输出格式
-
-> 完整模板见 `references/output-templates.md`。
-
-- 每次输出开头标注级别：`[Level 0]` / `[Level 1]` / `[Level 2]` / `[Level 3]`
-- 结尾提示：`说「升级」可进入 Level X。`
-- 语言匹配用户输入
-
-### 最小输出合同
-
-无论使用哪个 Level，最终面向用户的输出都必须包含：
-
-1. **识别结果**：`[SharpInput] Level X — 意图: 主意图（必要时列次意图）`
-2. **可复制问题**：用引用块 `>` 放出一段完整、可直接粘贴给 AI 的优化后输入（**开头必须包含角色注入语**）
-3. **角色预设**：标注选了哪个角色 + 1 句理由（用户说「不加角色」时跳过）
-4. **施压点**：列出本次实际注入的 2-4 个约束，不写抽象口号
-5. **取舍说明**：明确为了提升什么，放弃了什么
-6. **下一步**：只给一个动作；如果信息不足，给一个最小补充项
-
-Level 0 可压缩执行：识别结果 1 行、可复制问题 1 段（含角色注入）、一秒反问 1 句即可；不要展开施压详情。
-
-禁止输出只有方法论、评分或建议而没有“优化后可复制问题”。如果用户只要求“帮我看看”，也要给出可直接替换原问题的版本。
-
----
-
-## 边界情况处理
-
-| 输入类型 | 判定 | 处理方式 |
-|---------|------|---------|
-| **极短输入** (≤15 字，无明显问题结构) | → Level 0 | 不追问上下文，直接注入四大约束 + 一秒反问 |
-| **纯陈述/吐槽** (非提问，如 "X 太难用了") | → 隐式转化 | 把陈述转为挑战性问题（"如果要在一个月内让 X 变得好用，你会砍掉什么？"），按正常流程优化 |
-| **一次多条问题** (≥2 个独立问题) | → 拆分提示 | 用 AskUserQuestion 让用户选择优先级：`问题: "你输入了多组问题。我先优化哪一个？"` |
-| **用户中途说「跳过」** | → 即时输出 | 停止当前阶段，输出已有内容（标注 `[Level X — 中断]`） |
-| **极长输入** (>500 字) | → Level 2/3 | 先压缩核心问题，再正常优化。标注「已压缩长输入，如需调整范围请告知」 |
-| **重复优化** (用户对同一问题连续触发 SharpInput) | → 升级 | 自动升级一级，提示用户「检测到重复优化，已自动升级至 Level X」 |
-| **AskUserQuestion 失败** | → 降级交互 | 降级为文本输出选项让用户直接回复；不因此中断优化流程 |
-| **Agent 子代理调用失败** (非 Judge) | → 内联替代 | 意图识别子代理失败→主代理自行识别并标注「[意图置信度: 中]」；上下文补全子代理失败→跳过补全，使用通用维度 |
-| **用户给出矛盾信息** | → 指出并选择 | 标注「检测到矛盾: [A] vs [B]」，用 AskUserQuestion 让用户选择优先项；如工具不可用则按最后一条为准并标注 |
-| **references 文件读取失败** | → 降级执行 | 跳过该 reference 依赖的功能（共识检测→跳过共识评级；Judge prompt→使用内联简化版），标注「[参考文件不可用，已降级]」 |
-
----
-
-## 边界规则
-
-1. Gate 优先 — 快速问题直接回答，零摩擦
-2. 意图透明 — 展示识别结果，用户可随时覆盖
-3. 不猜测上下文 — 信息不足就问
-4. 不改变核心意图 — 优化提问方式，不改变用户该问什么
-5. 即用 — 优化后问题可直接复制使用
-6. 尊重用户选择 — 用户可随时覆盖级别和意图标签
-7. Judge 驱动 — Level 3 风险判定必须来自 Judge，不得自行修改
-8. 偏好静默应用 — 读取 `references/user-preferences.md`，不告知用户
-9. 费曼门控 — 所有问题必须通过可理解性验证才能输出，结果简要标注
-10. 轻量自检 — Level 1-2 输出前必须自检脆弱假设，结果标注于输出，致命假设触发重构（最多 1 次）
-11. 方向确认 — Level ≥ 2 在 Stage 1→2 间必须确认重构方向；Level 1 意图置信度中/低时轻量确认，高时跳过
-12. 降级优先 — 工具/子代理失败时降级而非中断，始终产出可用结果
-13. 共识预警 — Level 0/1 遇高共识问题时主动提示升级，防止输出力不从心
-14. 角色锚定 — 所有级别的最终可复制问题开头必须注入角色预设（用户明确拒绝时除外），角色是问题的一部分而非元数据
-15. 角色可覆盖 — 用户指定角色时立即切换，用户说「不加角色」时跳过注入
-
----
-
-## 参考文件
-
-| 文件 | 用途 | 使用时机 | 主要消费者 |
-|------|------|---------|-----------|
-| `references/output-templates.md` | Level 0~3 完整输出模板 | 输出格式化时读取 | Stage 3 Step 3 |
-| `references/judge-prompt.md` | Judge 子代理 prompt 模板 | Level 3 路径审查时填充+调用 | Stage 3 Step 1 |
-| `references/prompt-patterns.md` | 共识识别技巧 + 维度→思考框架详细映射 | Stage 2 维度路径生成时 | Stage 2 |
-| `references/intent-details.md` | 意图详细信号、确认示例、负面意图检测 | 意图置信度中/低或歧义时 | 意图识别 |
-| `references/self-learning.md` | 自学习系统规范（记录什么/何时读/何时写） | 输出完成后写入偏好 | Stage 3 完成后 |
-| `references/user-preferences.md` | 用户偏好数据（自动维护，勿手动编辑） | Gate 后 Memory Load 时读取 | Memory Load |
-
-### 维度核心问题速查（inline摘要，详细映射见 prompt-patterns.md）
-
-Stage 2 生成路径时，每个维度的核心驱动力：
-
-| 维度 | 核心问题 |
-|------|---------|
-| `system` | 什么会让这东西失败？各部分怎么咬合？ |
-| `interest` | 谁获利？谁承担成本？激励结构驱动什么行为？ |
-| `evolution` | 从哪来？现在什么阶段？什么触发了转变？ |
-| `structure` | 承重墙在哪？去掉哪个就塌？ |
-| `risk-first` | 波动的好处？最大单点故障？脆弱藏在哪里？ |
-| `counter-intuitive` | 什么事实最容易推翻结论？最强共识最值得挑战吗？ |
-| `adversarial` | 如果我是对手，怎么攻击？纳什均衡在哪？ |
-| `hidden-assumption` | 前提不成立时结论怎么变？哪些前提从未被质疑？ |
-| `minimalist` | 只保留一个要素，选哪个？砍到骨头还成立吗？ |
-| `time-horizon` | 3年后回看什么最重要？短长期最优解冲突在哪？ |
-| `role-reversal` | 如果我是对方/用户/竞对，最致命的问题是什么？ |
-| `peer-compare` | 1-2个最值得对比的同类？关键差异是什么？ |
-| `scale-effect` | 10倍规模时什么质变？小规模成立大规模塌在哪？ |
-
-### 自学习写入触发
-
-Stage 3 完成后（用户确认最终输出），自动执行：
-1. 读取 `references/self-learning.md` 获取记录规范
-2. 提取本次交互数据（Level、意图、选中路径、反馈）
-3. 追加到 `references/user-preferences.md` 的 History（保留最近10条）
-4. 重算 Summary 部分
+After final output and any path choice or feedback, update preferences according to `references/self-learning.md` when feasible. Do not let self-learning delay the user-facing output.
