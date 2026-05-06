@@ -5,5 +5,5 @@ tests/
 test-prompts.json
 
 # darwin-skill optimization artifacts
-darwin-result-card.html
+darwin-result-card*.html
 results.tsv
