@@ -6,3 +6,4 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-05-06T03:10	baseline-v2	SharpInput	-	76.8	baseline	-	第2轮基线评估: D5施压策略无执行指令+D7冗余+D8 Gate分级偏差	dry_run
 2026-05-06T03:15	5ffd1cd	SharpInput	76.8	80.1	keep	指令具体性+整体架构+实测	施压策略执行手册+Stage3编号统一+Gate去重	dry_run
 2026-05-06T03:20	0bf7c37	SharpInput	80.1	81.9	keep	检查点+实测	Level0/1共识预警+Level1轻量确认+边界规则13	dry_run
+2026-05-06T03:25	619c27d	SharpInput	81.9	83.1	keep	工作流+实测	Gate内在复杂度信号表(焦虑/隐含决策/高共识/价值冲突)	dry_run

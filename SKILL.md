@@ -651,9 +651,39 @@ Level 0 可压缩执行：识别结果 1 行、可复制问题 1 段、一秒反
 
 ## 参考文件
 
-- `references/output-templates.md` — 输出模板（Level 0~3）
-- `references/judge-prompt.md` — Judge 子代理 prompt 模板
-- `references/prompt-patterns.md` — 共识识别与打破技巧 + 维度→思考框架映射
-- `references/intent-details.md` — 意图识别详细信号、确认示例、负面意图检测
-- `references/self-learning.md` — 自学习系统规范
-- `references/user-preferences.md` — 用户偏好数据（自动维护）
+| 文件 | 用途 | 使用时机 | 主要消费者 |
+|------|------|---------|-----------|
+| `references/output-templates.md` | Level 0~3 完整输出模板 | 输出格式化时读取 | Stage 3 Step 3 |
+| `references/judge-prompt.md` | Judge 子代理 prompt 模板 | Level 3 路径审查时填充+调用 | Stage 3 Step 1 |
+| `references/prompt-patterns.md` | 共识识别技巧 + 维度→思考框架详细映射 | Stage 2 维度路径生成时 | Stage 2 |
+| `references/intent-details.md` | 意图详细信号、确认示例、负面意图检测 | 意图置信度中/低或歧义时 | 意图识别 |
+| `references/self-learning.md` | 自学习系统规范（记录什么/何时读/何时写） | 输出完成后写入偏好 | Stage 3 完成后 |
+| `references/user-preferences.md` | 用户偏好数据（自动维护，勿手动编辑） | Gate 后 Memory Load 时读取 | Memory Load |
+
+### 维度核心问题速查（inline摘要，详细映射见 prompt-patterns.md）
+
+Stage 2 生成路径时，每个维度的核心驱动力：
+
+| 维度 | 核心问题 |
+|------|---------|
+| `system` | 什么会让这东西失败？各部分怎么咬合？ |
+| `interest` | 谁获利？谁承担成本？激励结构驱动什么行为？ |
+| `evolution` | 从哪来？现在什么阶段？什么触发了转变？ |
+| `structure` | 承重墙在哪？去掉哪个就塌？ |
+| `risk-first` | 波动的好处？最大单点故障？脆弱藏在哪里？ |
+| `counter-intuitive` | 什么事实最容易推翻结论？最强共识最值得挑战吗？ |
+| `adversarial` | 如果我是对手，怎么攻击？纳什均衡在哪？ |
+| `hidden-assumption` | 前提不成立时结论怎么变？哪些前提从未被质疑？ |
+| `minimalist` | 只保留一个要素，选哪个？砍到骨头还成立吗？ |
+| `time-horizon` | 3年后回看什么最重要？短长期最优解冲突在哪？ |
+| `role-reversal` | 如果我是对方/用户/竞对，最致命的问题是什么？ |
+| `peer-compare` | 1-2个最值得对比的同类？关键差异是什么？ |
+| `scale-effect` | 10倍规模时什么质变？小规模成立大规模塌在哪？ |
+
+### 自学习写入触发
+
+Stage 3 完成后（用户确认最终输出），自动执行：
+1. 读取 `references/self-learning.md` 获取记录规范
+2. 提取本次交互数据（Level、意图、选中路径、反馈）
+3. 追加到 `references/user-preferences.md` 的 History（保留最近10条）
+4. 重算 Summary 部分
