@@ -1,17 +1,10 @@
 ---
 name: SharpInput
 description: >
-  Optimize any user input (questions, statements, plans, ideas, requirements) through
-  deep cognitive self-checking, multi-dimensional reframing, and anti-consensus detection
-  to force AI outputs with genuine opinions, clear positions, and real insight —
-  not "correct but useless" platitudes.
-  Triggers: "optimize this", "how to ask better", "help me organize", "is this good enough",
-  "how should I phrase this", "make this better", any discussion about input/question quality,
-  pasting content asking for optimization, or any non-trivial input that benefits from sharpening.
-  中文触发词: "优化这个问题", "帮我优化", "怎么问更好", "帮我组织一下",
-  "这样问行不行", "这样表述好不好", "帮我改一下", "优化提问", "优化输入",
-  "帮我理清思路", "这个问题问得好不好", "帮我润色", "优化一下",
-  "这样说对不对", "帮我理一下", "我这样说合适吗", "帮我完善一下".
+  AI输入优化器 — 将用户输入打磨成能逼出AI真正见解的高质量问题。
+  通过意图识别(14类)、认知施压(14种策略)、反共识检测，产出可直接复制使用的施压版问题。
+  不做：内容生成、代码编写、数据分析、文件操作。
+  触发：用户粘贴输入请求优化、讨论提问质量、"帮我优化/润色/理清思路/改一下"。
 agent_created: true
 allowed-tools: Read, Write, Glob, Bash, AskUserQuestion, Agent
 ---
