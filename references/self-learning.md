@@ -35,6 +35,19 @@ Store: `references/user-preferences.md` (in the skill directory, NOT workspace m
 | Combination details | A's angle + C's constraint (or A+B+C full combination) |
 | Feedback (if given) | "great" / "off track" |
 
+### All Levels — Confirmed Context (v2.3)
+
+如果在本次交互中用户提供了新的上下文信息，记录下来供后续自动填充使用：
+
+| Field | Example |
+|-------|---------|
+| Role | 产品经理 |
+| Tech stack | React + Python |
+| Budget | ~6000 |
+| Team size | 8人 |
+| Domain | 互联网/Web开发 |
+| Common constraints | 预算有限、短期出成果 |
+
 ## Combination Mechanics (max 3 paths)
 
 When user combines paths:
@@ -81,6 +94,30 @@ After Gate, before Intent Recognition (the Memory Load step):
 ### Feedback Integration
 - "great" feedback → boost the selected angle tag + intent combination as a strong positive signal
 - "off track" → record as negative signal; in next session with similar intent, avoid that angle tag
+
+### Intent Priming（v2.3）
+
+从历史记录中提取意图偏好，用于偏置当前轮次的意图识别：
+
+- 如果最近 10 次中 ≥60% 共享同一个主意图，该意图置信度 +0.1
+- 如果当前输入信号模糊（关键词匹配得分 0.3-0.7），优先选择用户历史 top-3 意图
+- 记录意图修正：当用户通过 AskUserQuestion 纠正意图时，将该输入模式→正确意图的映射记录到 `intent_corrections` 字段。下次相同模式出现时，直接修正意图置信度
+
+Intent corrections 记录格式：
+```text
+- correction_map: {"模式A": "正确意图A", "模式B": "正确意图B"}
+```
+
+### Context Auto-Fill（v2.3）
+
+当意图专属上下文规则要求询问某一字段，而该字段的值已存在于用户偏好记录中时：
+
+1. **自动填充**该字段，不在交互中重复提问
+2. 在最终输出中标注：`根据你的记录，[value]（可调整）`
+3. 如果用户在本次交互中调整了该值，更新偏好记录
+4. 可自动填充的字段：role, tech stack, budget, team size, domain, common constraints
+
+在打开输出时同步执行：扫描最终优化问题中的 `[xxx]` 占位符，如果用户偏好中有匹配的字段值，自动替换。
 
 ## Sliding Window
 

@@ -105,24 +105,98 @@ Classify the main intent and optional secondary intent. Semantic pattern beats k
 | 梳理 | "整理/总结/归纳/提炼" | extreme compression |
 | 求助 | "卡住/搞不定/怎么办/救救" | stuck-point piercing |
 
-Confidence rules:
-- **High**: semantic pattern is clear and no meaningful competing intent.
-- **Medium**: keyword hit is clear but a secondary intent exists.
-- **Low**: semantic pattern and keyword conflict, or multiple plausible main intents.
+Confidence rules (see `references/intent-details.md` for full scoring formula):
+- **High**: score ≥ 0.75
+- **Medium**: score 0.45 - 0.74
+- **Low**: score < 0.45
+
+### Conflict Resolution (v2.3)
+
+当语义信号和矩阵优先级冲突时，按下述顺序处理：
+
+1. **语义优先**：如果语义分析置信度 > 矩阵推断权重，语义信号胜出
+2. **叙事顺序**：当多个意图置信度接近（score 差 ≤ 0.15），用户先提到的意图优先
+3. **情绪修正**：检测到焦虑/愤怒/无奈等强烈情绪信号时，增加对应意图的修正因子（详见 `references/intent-details.md` 情感信号权重）
+4. **混淆矩阵**：边界模糊时，使用 `references/intent-details.md` 的意图混淆矩阵区分
+
+### Secondary Intent Weighting (v2.3)
+
+- 如果 primary_score - secondary_score ≤ 0.15，视为共主意图，两个意图的维度混合使用
+- 最大支持 2 个意图（主+次）；检测到 3 个以上取 score 最高的 2 个
+- 次意图影响输出：施压策略使用主意图默认策略，维度提示使用两个意图的强维度混合
+
+### Multi-Turn Intent Refinement (v2.3)
+
+当 Direction Check 步骤中用户说"偏了"：
+
+1. 重新评估意图分类——将用户修正信息作为新信号
+2. 如果意图判定变化（primary intent 改变），回到 Intent Recognition 步骤重新执行
+3. 如果意图判定不变，仅调整重构方向（原有行为）
 
 ## Context Completion
 
-Do not ask generic "background/goal/scenario" questions by default. First extract what the user already gave, then ask only for the missing field that changes the quality of the final question.
+Do not ask generic "background/goal/scenario" questions by default. Follow the three-step process: **Extract → Assess → Ask**.
+
+### Step 1: Context Extraction (v2.3)
+
+Scan the user's input for already-present context before considering what to ask. Extract structured information:
+
+| Pattern | What to Extract | Example |
+|---------|----------------|---------|
+| Numeric patterns | numbers + unit → time/resource constraints | "8人"→ team_size=8, "3个月"→ deadline=3m |
+| Audience mentions | 客户/老板/团队/用户 → audience | "老板要求"→ audience=老板 |
+| Temporal markers | 之前/已经/搞了两天 → time pressure | "搞了两天"→ urgency=high |
+| Resource mentions | 预算/人数/时间 → resource constraints | "预算有限"→ budget=constrained |
+| Emotional markers | 卡住/焦虑/着急/崩溃 → urgency signal | "卡住了"→ stuck=yes |
+| Technical terms | 技术栈/框架/语言 → tech stack | "React+Python"→ stack=React,Python |
+
+If any 2+ context dimensions are already present, skip the corresponding category's question.
+
+### Step 2: Intent-Specific Context Rules
+
+By Level:
+- **Level 0**: always skip context completion entirely (go straight to output)
+- **Level 1**: minimal — ask only 1 question, the single field that most changes output quality
+- **Level 2**: medium — ask up to 2 questions, or 1 question with 4 options covering multiple dimensions
+- **Level 3**: deep — ask up to 3 questions progressively; if first 2 already sufficient, skip the 3rd
+
+Full intent-specific rules:
 
 | Intent | Sufficient If Input Has | If Missing, Ask Only |
-|------|-------------------------|----------------------|
-| 生成 | product type, platform/stack, audience, purpose, constraint: any 2 | audience/use case or scale/acceptance criteria |
+|--------|-------------------------|----------------------|
+| 理解 | concept name, existing knowledge level, use case: any 1 | existing baseline or practical scenario |
 | 决策 | options, constraints, risk preference, time pressure: any 2 | non-negotiable constraint or risk preference |
-| 优化 | object, symptom, target metric, attempted solution: any 2 | optimization target or worst failure symptom |
-| 求助/诊断 | symptom, reproduction, recent change, attempted solution: any 1 | stuck-point location first |
+| 生成 | product type, platform/stack, audience, purpose, constraint: any 2 | audience/use case or scale/acceptance criteria |
+| 分析 | object, current state, evaluation criteria: any 2 | evaluation priority or decision stake |
 | 探索 | topic, exclusions, quantity, evaluation criteria: any 1 | openness or screening criteria |
+| 诊断 (standalone) | symptom, reproduction steps, environment: any 1 | first observed time or what changed recently |
+| 说服 | target, audience, their current position, your goal: any 2 | audience's main objection or stakeholder power |
+| 验证 | proposition, your current belief, evidence so far: any 1 | your confidence level or what would change your mind |
+| 规划 | start, end, constraints, team/resources: any 2 | hardest constraint or the first step uncertainty |
+| 学习 | topic, current level, available time, learning goal: any 1 | time budget or expected proficiency level |
+| 优化 | object, symptom, target metric, attempted solution: any 2 | optimization target or worst failure symptom |
+| 对比 | items to compare, comparison dimension: any 1 | deciding criteria or use case context |
+| 梳理 | source material volume, output purpose, structure preference: any 1 | compression ratio or audience reading level |
+| 求助 | symptom, reproduction, recent change, attempted solution, stuck signal: any 1 | stuck-point location first |
 
-If missing context does not block a useful output, proceed and put a replaceable placeholder in the copy-ready question, such as `[目标用户]`, `[性能指标]`, or `[预算上限]`.
+### Step 3: Context Quality Check (v2.3)
+
+After the ask step, calculate context confidence:
+- **Sufficient**: ≥2 of the intent's "Sufficient If" fields are present and filled
+- **Partial**: 1 field is present but more would meaningfully improve output
+- **Insufficient**: 0 fields present; output will contain multiple placeholders
+
+If **Partial** and Level ≥ 2, ask one more targeted question.
+If **Insufficient**, downgrade effective output depth by one Level for the self-check threshold.
+
+### Placeholder Resolution (v2.3)
+
+If missing context does not block a useful output, use replaceable placeholders in the copy-ready question (e.g., `[目标用户]`, `[性能指标]`, `[预算上限]`).
+
+After generating the copy-ready question, resolve placeholders in this order:
+1. If self-learning (`references/user-preferences.md`) has the value, auto-fill silently — mark as `[基于你的记录自动填充]`
+2. Otherwise, include in the output with a note: `请将 [xxx] 替换为你的实际情况`
+3. Level 3 must offer to resolve placeholder before final Phase 2 output — use AskUserQuestion
 
 ## Stage 1 — Reframe And Pressure
 
