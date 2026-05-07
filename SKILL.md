@@ -1,5 +1,6 @@
 ---
 name: SharpInput
+version: v2.3
 description: >
   Use when a user asks to improve, sharpen, rewrite, pressure-test, or clarify an input, prompt,
   question, request, plan, idea, or message before sending it to an AI or person. Trigger on
@@ -51,6 +52,13 @@ After trigger, give one short status line and continue without waiting:
 
 If the user requests "直接给/别问了/快速", keep the flow minimal and avoid optional confirmations.
 
+**Level 动态调整协议**（在 Gate 后即时生效）：
+1. 用户说"升级" → Level += 1（cap at 3），跳转到对应 Level 的 Gate 入口重新执行流程
+2. 用户说"降级" → Level -= 1（floor at 0），跳转到对应 Level 的 Gate 入口重新执行
+3. 用户说"快速" → 跳过 Context Completion 和 Direction Check，直接进入 Stage 1
+4. 用户指定级别（如"Level 2"、"L2"）→ 直接跳转，忽略原 Gate 判定
+5. 用户说"直接给" → 跳过所有交互步骤，输出当前 Level 模板的轻量版本
+
 ### Gate
 
 Choose the level top-down; first match wins unless the user explicitly overrides.
@@ -75,7 +83,7 @@ Short input is not automatically simple. Upgrade Level 0 to Level 1/2 if any int
 
 ### Memory Load
 
-Read `references/user-preferences.md` if present. Apply preferences silently; do not summarize them to the user.
+Read `references/user-preferences.json` if present. Apply preferences silently; do not summarize them to the user.
 
 Use preferences only to adjust:
 - preferred level/depth
@@ -89,22 +97,10 @@ If the file is missing or empty, continue normally.
 
 Classify the main intent and optional secondary intent. Semantic pattern beats keyword matching. If confidence is low, use `AskUserQuestion` and see `references/intent-details.md`.
 
-| Intent | Typical Signal | Pressure Strategy |
-|------|----------------|------------------|
-| 理解 | "是什么/怎么用/原理/啥意思" | counter-intuitive anchor |
-| 决策 | "该不该/怎么选/A还是B/值不值" | regret pre-mortem |
-| 生成 | "帮我做/设计/写一个/搭建" | minimum viable constraint |
-| 分析 | "分析/评估/看看/方案怎么样" | hidden-assumption exposure |
-| 探索 | "还有什么/脑暴/其他方向" | opposing-route advocate |
-| 诊断 | "为什么报错/排查/不work/挂了" | root-cause challenge |
-| 说服 | "怎么说服/汇报/推动/让X同意" | role reversal |
-| 验证 | "对不对/可行吗/靠谱吗/有没有坑" | devil's judgment |
-| 规划 | "路线图/怎么推进/时间表/落地" | backward planning |
-| 学习 | "怎么学/入门/掌握/上手" | learning-path compression |
-| 优化 | "优化/提升/改进/调优" | pruning test |
-| 对比 | "区别/对比/哪个更好/差在哪" | difference stress test |
-| 梳理 | "整理/总结/归纳/提炼" | extreme compression |
-| 求助 | "卡住/搞不定/怎么办/救救" | stuck-point piercing |
+14 intents (see `references/intent-details.md` for full signal details, `references/output-templates.md` for per-intent pressure strategies):
+**理解 | 决策 | 生成 | 分析 | 探索 | 诊断 | 说服 | 验证 | 规划 | 学习 | 优化 | 对比 | 梳理 | 求助**
+
+Pressure strategy for each intent is defined in `references/output-templates.md` (Level 2 template → 施压策略 field).
 
 Confidence rules (see `references/intent-details.md` for full scoring formula):
 - **High**: score ≥ 0.75
@@ -200,7 +196,7 @@ If **Insufficient**, downgrade effective output depth by one Level for the self-
 If missing context does not block a useful output, use replaceable placeholders in the copy-ready question (e.g., `[目标用户]`, `[性能指标]`, `[预算上限]`).
 
 After generating the copy-ready question, resolve placeholders in this order:
-1. If self-learning (`references/user-preferences.md`) has the value, auto-fill silently — mark as `[基于你的记录自动填充]`
+1. If self-learning (`references/user-preferences.json`) has the value, auto-fill silently — mark as `[基于你的记录自动填充]`
 2. Otherwise, include in the output with a note: `请将 [xxx] 替换为你的实际情况`
 3. Level 3 must offer to resolve placeholder before final Phase 2 output — use AskUserQuestion
 
@@ -268,6 +264,8 @@ Before final output, translate the optimized question into plain language intern
 
 Inject one role phrase at the start of the copy-ready question unless the user says "不加角色" or specifies another role.
 
+**参数注入**：在填入角色模板前，从上下文补全提取 `[domain]`/`[experience]` 参数。尽可能注入领域特定信息使角色更精准（见 `references/output-templates.md` 参数推导规则）。
+
 | Intent | Default Role |
 |--------|--------------|
 | 理解/诊断/学习/梳理 | 领域专家 |
@@ -312,6 +310,9 @@ Never output only analysis, ratings, or advice without the optimized question.
 | user says "跳过/直接给" | stop optional stages and output current best version |
 | extremely long input | compress to core issue first, then proceed |
 | repeated optimization of same question | auto-upgrade one level |
+| user says "升级" or "upgrade" | Level += 1（max 3），跳转到对应 Level 的入口重新执行 |
+| user says "降级" or "downgrade" | Level -= 1（min 0），跳转到对应 Level 的入口重新执行 |
+| user says "快速" or 指定级别（如"Level 2"） | 直接跳转到指定级别，跳过中间交互 |
 | `AskUserQuestion` fails | print concise options and ask user to reply with a label |
 | non-Judge Agent fails | continue inline and mark confidence as medium |
 | reference file missing | degrade gracefully; do not block output |
@@ -320,3 +321,9 @@ Never output only analysis, ratings, or advice without the optimized question.
 ## Self-Learning
 
 After final output and any path choice or feedback, update preferences according to `references/self-learning.md` when feasible. Do not let self-learning delay the user-facing output.
+
+**效果追踪（Post-Interaction）**：当用户后续回访并提及之前优化问题的使用效果时，更新 `user-preferences.json` 中对应历史条目的 `outcome_score` 字段。评分规则：
+- 用户说"好/很有用/帮我拿到了结果" → score=4-5
+- 用户说"一般/还行/没太大帮助" → score=3
+- 用户说"不好/没用/AI还是给了废话" → score=1-2
+- 记录 outcome_note 说明原因（如有）

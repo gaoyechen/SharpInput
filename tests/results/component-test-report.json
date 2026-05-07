@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-05-07T18:31:35.160870",
+  "skill_version": "v2.3",
+  "suites": [
+    {
+      "suite": "gate",
+      "label": "Gate 分级",
+      "status": "defined",
+      "total": 10,
+      "target": 90,
+      "target_label": "90%",
+      "file": "gate-tests.md",
+      "checked_at": "2026-05-07T18:31:35.160465"
+    },
+    {
+      "suite": "intent",
+      "label": "意图识别",
+      "status": "defined",
+      "total": 20,
+      "target": 85,
+      "target_label": "85%",
+      "file": "intent-tests.md",
+      "checked_at": "2026-05-07T18:31:35.160662"
+    },
+    {
+      "suite": "context",
+      "label": "上下文补全",
+      "status": "defined",
+      "total": 10,
+      "target": 85,
+      "target_label": "85%",
+      "file": "context-tests.md",
+      "checked_at": "2026-05-07T18:31:35.160765"
+    },
+    {
+      "suite": "judge",
+      "label": "Judge 审查",
+      "status": "defined",
+      "total": 7,
+      "target": 80,
+      "target_label": "80%",
+      "file": "judge-tests.md",
+      "checked_at": "2026-05-07T18:31:35.160867"
+    }
+  ],
+  "summary": {
+    "total_suites": 4,
+    "total_tcs": 47,
+    "defined_suites": 4
+  }
+}

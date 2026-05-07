@@ -4,10 +4,10 @@
 >
 > 当你的问题被 AI 敷衍时，你会后悔没用 SharpInput。
 
-**v2.2** · 14 类意图 · 13 维度 · 5 种角色 · 4 级自动分级 · 自学习
+**v2.3** · 14 类意图 · 13 维度 · 5 种角色 · 4 级自动分级 · 自学习
 
-[![DARWIN Score](https://img.shields.io/badge/DARWIN%20Score-80.3-2DA44E?style=flat-square)](https://github.com/gaoyechen/SharpInput)
-[![Version](https://img.shields.io/badge/version-v2.2-6B7280?style=flat-square)](#)
+[![DARWIN Score](https://img.shields.io/badge/DARWIN%20Score-84.5-2DA44E?style=flat-square)](https://github.com/gaoyechen/SharpInput)
+[![Version](https://img.shields.io/badge/version-v2.3-6B7280?style=flat-square)](#)
 [![License](https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square)](LICENSE)
 [![Intent Recognition](https://img.shields.io/badge/Intent%20Recognition-14%20Types-8B5CF6?style=flat-square)](#)
 [![帮你表达](https://img.shields.io/badge/%E5%B8%AE%E4%BD%A0%E8%A1%A8%E8%BE%BE-EC4899?style=flat-square)](#)
