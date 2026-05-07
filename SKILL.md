@@ -71,6 +71,7 @@ Short input is not automatically simple. Upgrade Level 0 to Level 1/2 if any int
 | high-consensus trap | likely to produce generic "best practices" or search-result answers |
 | value conflict | multiple parties or values are in tension |
 | tried-but-stuck | user already tried something and it failed |
+| existing solution + optimization request | "已试过X" + "怎么优化" → Level 2 |
 
 ### Memory Load
 
@@ -189,6 +190,11 @@ After the ask step, calculate context confidence:
 If **Partial** and Level ≥ 2, ask one more targeted question.
 If **Insufficient**, downgrade effective output depth by one Level for the self-check threshold.
 
+**Sufficient 执行规则**：当 Context Quality Check 判定为 Sufficient 时：
+1. 不再调用 AskUserQuestion 询问上下文——直接进入 Stage 1
+2. 在输出中标注 `上下文: 充足，不再追问`（一句话即可）
+3. 如果输入中包含了数值约束（人数/预算/时间/消息量等），在优化后的问题中原样保留，不要重新询问这些值
+
 ### Placeholder Resolution (v2.3)
 
 If missing context does not block a useful output, use replaceable placeholders in the copy-ready question (e.g., `[目标用户]`, `[性能指标]`, `[预算上限]`).
@@ -293,6 +299,8 @@ Every final response must include:
 6. One next action or one minimal missing field.
 
 Level 0 may compress this to: level/intent line, one quote block, one counter-intuitive follow-up, and optional upgrade suggestion.
+
+**Level 0 硬性限制**：总输出 ≤ 150 字（不含格式标记）。不附带：演化锚、同类锚、施压详情（立场/反共识/取舍/可执行的拆解条目）、被舍弃维度。如果 Stage 3 的自检/Feynman Gate/Role 逻辑会让输出膨胀，直接跳过，只保留：角色注入语 → 优化问题 → 一秒反问 → 共识等级。
 
 Never output only analysis, ratings, or advice without the optimized question.
 
