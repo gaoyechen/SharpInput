@@ -1,6 +1,6 @@
 ---
 name: SharpInput
-version: v2.3
+version: v2.4
 description: >
   Use when a user asks to improve, sharpen, rewrite, pressure-test, or clarify an input, prompt,
   question, request, plan, idea, or message before sending it to an AI or person. Trigger on
@@ -55,9 +55,9 @@ If the user requests "直接给/别问了/快速", keep the flow minimal and avo
 **Level 动态调整协议**（在 Gate 后即时生效）：
 1. 用户说"升级" → Level += 1（cap at 3），跳转到对应 Level 的 Gate 入口重新执行流程
 2. 用户说"降级" → Level -= 1（floor at 0），跳转到对应 Level 的 Gate 入口重新执行
-3. 用户说"快速" → 跳过 Context Completion 和 Direction Check，直接进入 Stage 1
+3. 用户说"快速" → 跳过 Direction Check 和所有可选确认，但**不跳过 Context Completion**——上下文收集是必要步骤，缺少它会导致输出建立在臆测之上
 4. 用户指定级别（如"Level 2"、"L2"）→ 直接跳转，忽略原 Gate 判定
-5. 用户说"直接给" → 跳过所有交互步骤，输出当前 Level 模板的轻量版本
+5. 用户说"直接给" → 跳过 Direction Check 和可选确认，输出当前 Level 模板的轻量版本；但**仍需经过 Context Completion**——如果上下文不足必须提问，哪怕只问一个最关键的字段
 
 ### Gate
 
@@ -183,8 +183,12 @@ After the ask step, calculate context confidence:
 - **Partial**: 1 field is present but more would meaningfully improve output
 - **Insufficient**: 0 fields present; output will contain multiple placeholders
 
-If **Partial** and Level ≥ 2, ask one more targeted question.
-If **Insufficient**, downgrade effective output depth by one Level for the self-check threshold.
+**强制执行规则（不可跳过、不可覆盖）：**
+- **Sufficient** → 正常进入 Stage 1
+- **Partial** and Level ≥ 2 → 必须再问一个最关键的缺失字段，不问不许进入 Stage 1
+- **Insufficient** → **禁止直接输出**。必须至少完成一轮 AskUserQuestion 收集关键上下文，收集后重新评估。即使用户说了"快速/直接给"，Insufficient 状态下仍必须提问
+
+**自学习反作弊**：不要因为 user-preferences.json 中有历史记录就假设上下文"已知"。历史记录只能用于角色/风格偏好，不能替代当次输入的业务上下文（如系统类型、功能范围、字段列表）。每次输入的业务上下文必须从当次对话中获取，不从历史推断。
 
 **Sufficient 执行规则**：当 Context Quality Check 判定为 Sufficient 时：
 1. 不再调用 AskUserQuestion 询问上下文——直接进入 Stage 1
