@@ -2,6 +2,11 @@
 .omc/
 references/user-preferences.md
 
+# test artifacts
+tests/
+test-prompts.json
+AGENTS.md
+
 # darwin-skill optimization artifacts
 darwin-result-card*.html
 results.tsv
