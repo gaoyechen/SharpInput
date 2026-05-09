@@ -1,133 +1,131 @@
-# SharpInput
+# ⚡ SharpInput v3.0
 
-SharpInput is an AI input compiler. It upgrades weak, vague, subjective, or under-constrained user input into a copy-ready prompt that another AI can answer with more precision.
+**把"烂问题"变成"好 Prompt"——AI 输入编译器**
 
-It does not directly solve the user's underlying task by default. Its job is to improve the input.
+> 你问 AI 得到的答案总是很一般？问题不在 AI，在你**怎么问**。
 
-## What Changed
+---
 
-This version refactors SharpInput from a single heavy skill into an Agent-oriented system:
+## 🔥 痛点：为什么你的 AI 用不好？
 
-- `SKILL.md`: compact trigger and runtime checklist
-- `AGENT.md`: orchestration flow, routing, and handoff discipline
-- `skills/*/SKILL.md`: focused capability modules
-- `references/*.md`: taxonomies, slot templates, rubrics, and output templates
-- `examples/` and `tests/`: regression examples and quality checks
-- `archive/SharpInput-v2.4.md`: archived monolithic version
+| 你这样问 | AI 这样答 | 问题在哪 |
+|-----------|-------------|-----------|
+| "帮我分析一下" | 泛泛而谈，没有重点 | 缺少分析维度 |
+| "写个方案" | 教科书式答案 | 没说清楚场景和约束 |
+| "这段代码有问题" | 给出通用建议 | 没说清楚错误现象和目标 |
+| "推荐一个工具" | 列出10个，没结论 | 没说预算和优先级 |
 
-## Core Principle
+**根本原因：表达不完整 → AI 只能给安全答案。**
 
-Agent manages flow. Skills manage capabilities.
+---
 
-SharpInput should route to focused modules only when needed. It should not become another monolithic prompt.
+## ✅ SharpInput 怎么做？
 
-## Runtime Flow
-
-```text
-Trigger check
--> Input normalization
--> Gate Level 0-3
--> Intent detection
--> Scenario detection
--> Scenario slot elicitation or context completion
--> Route selection
--> Prompt compilation
--> Intent fidelity check
--> Prompt quality scoring
--> Optional Judge review
--> Output rendering
+```
+你的烂输入
+    ↓  SharpInput（AI输入编译器）
+    ↓  意图识别 → 场景检测 → 上下文补全 → Prompt编译 → 压力测试
+    ↓
+复制即用的高质量Prompt
 ```
 
-## When To Use
+**不是帮你回答问题，而是帮你把问题本身升级。**
 
-Use SharpInput when the user asks to improve the input itself:
+---
 
-- "帮我优化这个 prompt"
-- "这个问题怎么问 AI 更好"
-- "帮我润色/理清/改一下"
-- "这样问行不行"
-- "把这个需求改成一个更好的 AI 提问"
+## 🚀 快速体验
 
-Do not use SharpInput when the user wants direct execution:
+### 使用前（弱表达）
+```
+为什么大统一的第一个王朝都很短命？
+```
+→ AI 会给你：暴政、农民起义、严刑峻法……（教科书标准答案）
 
-- coding or file edits
-- factual lookup
-- data analysis
-- product recommendation answer
-- direct debugging
+### 使用后（SharpInput 升级）
+```
+你是一位中国历史学者，专注于制度分析与政治衰落研究。
 
-If intent is mixed, clarify whether the user wants the answer or an upgraded prompt.
+请分析：为什么中国历史上由分裂走向大统一的"第一个"统一王朝，往往国祚极短？
+具体对象：秦、西晋、隋
 
-## Levels
+请从以下维度进行结构性对比分析：
+1. 统一方式与合法性的差异
+2. 制度设计与继承危机
+3. 中心-边缘整合成本
+4. 精英吸纳与排斥策略
+5. 对比：为什么汉、唐、宋、明、清能更长命？
 
-| Level | Use When | Route |
-|---|---|---|
-| Level 0 | very small or quick rewrite | Quick Rewrite |
-| Level 1 | clear intent, wording/structure improvement | Quick Rewrite or Clarify First |
-| Level 2 | decision, comparison, optimization, trade-off | Pressure Prompt |
-| Level 3 | high-risk, multi-path, strategy, requested review | Judge Mode |
+输出要求：对比表格 + 1-2个反共识观点 + 史料支撑
+```
+→ AI 给出深度结构性分析，而非泛泛而谈。
 
-## Key Concepts
+---
 
-### Intent Fidelity
+## 🎯 核心能力
 
-The upgraded prompt must preserve the user's original goal. Do not add a conclusion, stance, or scenario the user did not provide.
+| 能力 | 说明 |
+|------|------|
+| **意图识别** | 区分14种意图类型，不误判你的真实目标 |
+| **场景检测** | 识别电脑选购、AI订阅、PRD生成等具体场景，自动填充场景模板 |
+| **Level 分级** | Level 0-3 自动路由，简单问题快速处理，复杂决策走完整流程 |
+| **上下文补全** | Level 2+ 强制补全 audience/goal/constraints，不再跳过关键字段 |
+| **压力测试** | 主动挑战"默认答案"，逼出更有深度的回答 |
+| **Judge 审查** | Level 3 高风险决策，独立审查 prompt 质量 |
 
-### Scenario Slots
+---
 
-Known scenarios such as computer purchase, AI subscription choice, PRD generation, UI review, frontend demo generation, and learning plans use scenario-specific slots before generic questions.
+## 📦 项目结构
 
-### Default-Answer Stress Test
-
-SharpInput may add pressure when generic answers would be weak. This is not forced contrarian behavior. The goal is to make the next AI explain trade-offs, failure conditions, and concrete next steps.
-
-### Judge Review
-
-Judge is reserved for Level 3, high-risk decisions, multi-path prompts, or explicit review requests. It checks intent fidelity, scenario fit, missing slots, pressure fit, and copy readiness.
-
-## Project Structure
-
-```text
+```
 SharpInput/
-├── SKILL.md
-├── AGENT.md
-├── archive/
-│   └── SharpInput-v2.4.md
-├── skills/
+├── SKILL.md          # 触发入口 + 运行时检查清单
+├── AGENT.md          # Agent编排流程 + 模块间数据传递规范
+├── skills/           # 专项能力模块（按需加载）
 │   ├── intent-detection/
 │   ├── scenario-detection/
-│   ├── scenario-slot-elicitation/
-│   ├── context-completion/
-│   ├── description-clarifier/
+│   ├── context-completion/   ← Level 2+ 强制补全，本次v3.0重点修复
 │   ├── prompt-compiler/
 │   ├── pressure-strategy/
-│   ├── judge-review/
-│   └── output-renderer/
-├── references/
-│   ├── intent-taxonomy.md
-│   ├── scenario-slot-templates.md
-│   ├── prompt-patterns.md
-│   ├── pressure-strategies.md
-│   ├── output-templates.md
-│   ├── judge-rubric.md
-│   └── handoff-contract.md
-├── examples/
-└── tests/
+│   └── ...
+├── references/       # 意图分类法、场景模板、评分Rubric
+├── examples/         # 各Level示例用例
+└── tests/            # 回归测试用例 + 质量评分标准
 ```
 
-## Quality Checks
+> **设计理念**：Agent 管流程，Skill 管能力。不把所有逻辑塞进一个文件。
 
-Use `tests/regression-cases.md` after structural changes.
+---
 
-The final output must:
+## 🛠 使用方法
 
-- identify Level, intent, scenario, and context status
-- explain why the original input is weak
-- include one complete upgraded prompt
-- state what was added
-- include a trade-off or risk note
-- avoid directly solving the underlying task
+### 在 WorkBuddy / Claude Code 中使用
 
-## License
+触发关键词（说其中一个即可）：
+```
+/SharpInput 帮我优化这个问题
+/SharpInput 这样问 AI 行不行
+/SharpInput 帮我润色一下这个 prompt
+```
 
-MIT
+SharpInput 会接管后续流程：识别意图 → 检测场景 →（必要时）问你补全上下文 → 输出升级版 Prompt。
+
+---
+
+## 📌 v3.0 更新日志
+
+- 🔧 **修复**：`context-completion` 模块新增 Level-aware 强制门控，Level 2+ 不得跳过上下文补全
+- 🔧 **修复**：`.gitignore` 修正 `AGENTS.md`（运行时内存文件）排除规则
+- ✨ **新增**：`references/` 完整补充（意图分类法、场景槽位模板、压力策略、Judge评分标准）
+- ✨ **新增**：`examples/` 各 Level 完整示例用例
+- ✨ **新增**：`tests/` 回归测试用例 + 质量评分 Rubric
+- 📝 **版本号统一**：所有版本引用统一为 v3.0
+
+---
+
+## 📄 License
+
+MIT —— Free to use, modify and distribute.
+
+---
+
+**⭐ 如果 SharpInput 帮你问出了更好的问题，给个 Star 吧！**

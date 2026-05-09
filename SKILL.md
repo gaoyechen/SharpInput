@@ -6,7 +6,7 @@ description: >
   Trigger on "帮我优化/润色/理清/改一下/这样问行不行", "怎么问 AI 更好", "optimize this prompt",
   "make this clearer", or any discussion about prompt/question quality. Do not use for directly
   answering the underlying task, coding, data analysis, or file operations.
-version: "2.0"
+version: "3.0"
 agent_created: true
 allowed-tools: Read, Write, Glob, Bash, AskUserQuestion, Agent
 ---
