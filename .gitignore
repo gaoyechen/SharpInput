@@ -3,7 +3,9 @@
 references/user-preferences.md
 
 # test artifacts
-tests/
+tests/*
+!tests/regression-cases.md
+!tests/quality-rubric.md
 test-prompts.json
 AGENTS.md
 

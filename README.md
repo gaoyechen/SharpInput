@@ -1,355 +1,132 @@
-# SharpInput — AI 最强嘴替
+# SharpInput
 
-> **不是提问优化器，是认知施压武器。**
->
-> 当你的问题被 AI 敷衍时，你会后悔没用 SharpInput。
+SharpInput is an AI input compiler. It upgrades weak, vague, subjective, or under-constrained user input into a copy-ready prompt that another AI can answer with more precision.
 
-**v2.3** · 14 类意图 · 13 维度 · 5 种角色 · 4 级自动分级 · 自学习
+It does not directly solve the user's underlying task by default. Its job is to improve the input.
 
-[![DARWIN Score](https://img.shields.io/badge/DARWIN%20Score-84.5-2DA44E?style=flat-square)](https://github.com/gaoyechen/SharpInput)
-[![Version](https://img.shields.io/badge/version-v2.3-6B7280?style=flat-square)](#)
-[![License](https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square)](LICENSE)
-[![Intent Recognition](https://img.shields.io/badge/Intent%20Recognition-14%20Types-8B5CF6?style=flat-square)](#)
-[![帮你表达](https://img.shields.io/badge/%E5%B8%AE%E4%BD%A0%E8%A1%A8%E8%BE%BE-EC4899?style=flat-square)](#)
-[![Self-Learning](https://img.shields.io/badge/Self--Learning-On-10B981?style=flat-square)](#)
+## What Changed
 
-[![GitHub Stars](https://img.shields.io/github/stars/gaoyechen/SharpInput?style=flat-square&color=yellow)](https://github.com/gaoyechen/SharpInput)
-[![站在AI面前的底气](https://img.shields.io/badge/站在AI面前的底气-2DA44E?style=flat-square)](#)
+This version refactors SharpInput from a single heavy skill into an Agent-oriented system:
 
----
+- `SKILL.md`: compact trigger and runtime checklist
+- `AGENT.md`: orchestration flow, routing, and handoff discipline
+- `skills/*/SKILL.md`: focused capability modules
+- `references/*.md`: taxonomies, slot templates, rubrics, and output templates
+- `examples/` and `tests/`: regression examples and quality checks
+- `archive/SharpInput-v2.4.md`: archived monolithic version
 
-## 你的问题，配不上 AI 的能力
+## Core Principle
 
-你问 AI「React 和 Vue 哪个好」，它给你列一张对比表。
-你问 AI「我该不该跳槽」，它说「要综合考虑」。
-你问 AI「怎么提升团队效率」，它给你 10 条正确的废话。
+Agent manages flow. Skills manage capabilities.
 
-不是 AI 不行。**是你的问题让 AI 没有选择——只能给你中庸答案。**
+SharpInput should route to focused modules only when needed. It should not become another monolithic prompt.
 
-SharpInput 是你的嘴替。它重新设计你的问题结构，在发送给 AI 之前注入四大约束：**立场、反共识、取舍、可执行**。AI 被迫给出有代价的答案，而不是正确的废话。
+## Runtime Flow
 
-**一个让 AI 无处可逃的认知施压框架。**
-
----
-
-## 你甚至不知道自己想问什么
-
-这才是最大痛点。
-
-你脑子里有个模糊的想法，但说不清楚——
-「好像要对比 A 和 B，但又不太确定...」
-「我知道 X 有问题，但问题到底在哪儿？」
-「我卡住了，但说不清卡在哪里」
-
-**SharpInput 的第一步，不是改写你的问题——是先帮你找到真正的问题。**
-
-### 意图自动识别 + 选项引导
-
-你只说一句话，SharpInput 自动识别你的真实意图（14 类），并用选项帮你明确方向：
-
-| 你的原始输入 | SharpInput 识别 + 引导 |
-|-------------|----------------------|
-| "帮我分析下这个方案" | 识别为「分析」，问：「你主要关心风险、收益，还是要看对比？」 |
-| "我想学点新东西" | 识别为「学习」，问：「目标是转行、晋升、还是纯兴趣？时间有多少？」 |
-| "我想做个小工具" | 识别为「生成」，问：「给自己用还是给团队？技术栈有没有限制？」 |
-| "这事怎么推不动" | 识别为「求助」，问：「卡在方向不清、方案不行、还是执行不动？」 |
-
-**说清楚前，先让你想清楚。** 这步做好了，后面的施压才有意义。
-
----
-
-## 为什么需要 SharpInput
-
-| 你现在的困境 | SharpInput 给你什么 |
-|-------------|-------------------|
-| 说不清自己想问什么，脑子一团浆糊 | 意图自动识别 + 选项引导，帮你找到真正的问题 |
-| AI 回答太泛，「综合考虑」「因人而异」 | 强制 AI 必须选方向，给出有代价的结论 |
-| 问题问了一圈，发现 AI 在说废话 | 14 种施压策略，让 AI 给出只有深度思考才能产出的答案 |
-| 问 AI 的效果和搜索引擎差不多 | 5 种角色预设注入，迫使 AI 切换到专家/执行者/攻防教练/质疑者/跨界者视角 |
-| 复杂问题问不出深度 | 4 级自动分级 + Judge 独立审查，AI 必须接受第三方检验 |
-| AI 回复总是「教科书答案」 | 强制注入反共识约束 + 时空锚点，让 AI 给出被忽视的视角 |
-
----
-
-## 效果立竿见影
-
-### 普通 AI vs SharpInput 优化
-
-| 场景 | 普通 AI 回答 | SharpInput 优化后 |
-|------|-------------|-------------------|
-| **"我该不该考研"** | 「要综合考虑个人发展、职业规划...」 | 「你必须选一座学校——说出放弃的另一条路最大的机会成本。如果 5 年后你后悔没考研而不是没工作，那是哪个？为什么？」 |
-| **"怎么提升团队效率"** | 「明确目标、敏捷管理、工具优化...」 | 「先砍掉一个你现在正在做的低效工作——不是改进，是砍掉。哪个？为什么？」 |
-| **"React 和 Vue 选哪个"** | 「对比生态、社区、学习曲线...」 | 「假设你选了 Vue，3 年后最可能让你后悔的技术债是什么？如果 Vue 社区明年崩溃了，你还选吗？为什么？」 |
-
-**问题没变，AI 的回答质量天壤之别。**
-
----
-
-## 核心机制
-
-### 四大约束（每个级别必注）
-
-| 约束 | 强制要求 |
-|------|---------|
-| 立场约束 | 必须选方向，AI 不得中立 |
-| 反共识约束 | 必须挑战主流观点并为之辩护 |
-| 取舍约束 | 必须说明放弃什么来换取什么 |
-| 可执行约束 | 给出本周就能做的一个具体动作 |
-
-### 14 种意图 x 14 种施压策略
-
-| 意图 | 你说... | SharpInput 逼 AI 回答... |
-|------|---------|------------------------|
-| 决策 | 我该跳槽吗？ | 3 年后你最可能后悔哪个选择？为什么？ |
-| 理解 | 微服务是什么？ | 什么场景下微服务反而是错误解？给我 1 个反例。 |
-| 分析 | 这个方案怎么样？ | 方案中最脆弱的 3 个前提是什么？哪个最容易被推翻？ |
-| 生成 | 帮我设计增长方案 | 你必须砍掉增长方案中的一个方向——砍哪个？为什么？ |
-| 探索 | 还有别的方向吗？ | 说服我为什么不应该走你推荐的那条路。 |
-| 诊断 | 为什么总报错？ | 假设问题不在代码里，在哪里？你有证据吗？ |
-| 验证 | 这个方案可行吗？ | 找出 3 个最可能推翻你方案的事实。 |
-| 说服 | 怎么让老板同意？ | 站在老板角度，他最抗拒的 3 个理由是什么？ |
-| 规划 | 怎么落地？ | 从终点反向推，第一步必须是什么？哪步失败会全盘皆输？ |
-| 学习 | 怎么学 Python？ | 如果只有 20% 的时间，保留哪 20%？为什么？ |
-| 优化 | 怎么优化性能？ | 必须砍掉一个优化方向——砍哪个？ |
-| 对比 | React 和 Vue 差在哪？ | 什么条件下它们会变成一样的？ |
-| 梳理 | 帮我理清思路 | 用一句话概括全部——哪句？对方只能记住这句。 |
-| 求助 | 我卡住了怎么办？ | 卡在方向不清、方案不行、还是执行不动？ |
-
----
-
-## 四级分级系统
-
-按问题复杂度自动匹配，无需手动选择。
-
-```
-输入 --> Gate（决策树） --> 自动分级 --> 对应输出
+```text
+Trigger check
+-> Input normalization
+-> Gate Level 0-3
+-> Intent detection
+-> Scenario detection
+-> Scenario slot elicitation or context completion
+-> Route selection
+-> Prompt compilation
+-> Intent fidelity check
+-> Prompt quality scoring
+-> Optional Judge review
+-> Output rendering
 ```
 
-| 级别 | 触发条件 | 一句话做什么 | 核心输出 |
-|------|---------|------------|---------|
-| **L0 闪电** | ≤15 字 / 要求快 | 3 秒注入一个反直觉反问 | 一段问题 + 一句反问 |
-| **L1 锐化** | 方向清晰，需打磨 | 诊断 + 施压版问题 | 可复制问题 + 改进点 |
-| **L2 施压** | 有上下文，需立场约束 | 意图 -> 施压版 -> 维度 + 预警 | 完整输出含风险提示 |
-| **L3 对抗** | 复杂决策/多因素权衡 | 多路径 A/B/C -> Judge 独立审查 -> 你选择 | 最终问题 + 反例 + 翻转条件 |
+## When To Use
 
-### 短输入陷阱（短 ≠ 简单）
+Use SharpInput when the user asks to improve the input itself:
 
-| 信号 | 示例 | 实际级别 |
-|------|------|---------|
-| 焦虑/恐惧情绪词 | "AI取代程序员了咋办" | L1（不是 L0） |
-| 隐含决策 | "该不该考研" | 表面探索，实际不可逆选择 |
-| 高共识陷阱 | "怎么提升团队效率" | L1+ 施压 |
-| 价值冲突 | "该不该 996" | 至少 L2 |
-| 已尝试未解决 | "试过 X、Y 都没效果" | 至少 L2 |
+- "帮我优化这个 prompt"
+- "这个问题怎么问 AI 更好"
+- "帮我润色/理清/改一下"
+- "这样问行不行"
+- "把这个需求改成一个更好的 AI 提问"
 
----
+Do not use SharpInput when the user wants direct execution:
 
-## 完整流程
+- coding or file edits
+- factual lookup
+- data analysis
+- product recommendation answer
+- direct debugging
 
-```
-用户输入
-  |
-  v
-Opening -- 告知级别 + 意图，不等待确认
-  |
-  v
-Gate -- 决策树自动分级（0~3）
-  |
-  v
-Memory Load -- 静默加载用户偏好
-  |
-  v
-意图识别（14 类）-- 关键词 + 语义双层判定
-  |
-  v
-上下文补全（意图专属）
-  |
-  v
-Stage 1 -- 问题重构 + 四大约束 + 共识检测
-  |
-  v
-Stage 2 -- 维度发散（13 维度池）-- 含演化锚 + 同类锚
-  |
-  v
-Stage 3 -- 自检 + Judge 审查（仅 L3） + 最终输出
-```
+If intent is mixed, clarify whether the user wants the answer or an upgraded prompt.
 
-### 13 维度池
+## Levels
 
-| 分类 | 维度 | 核心问题 |
-|------|------|---------|
-| 正面建构 | system（系统） | 什么会让它失败？各部分怎么咬合？ |
-| | interest（利益） | 谁获利？谁承担成本？ |
-| | evolution（演化） | 从哪来？现在什么阶段？ |
-| | structure（结构） | 承重墙在哪？去掉哪个就塌？ |
-| 批判挑战 | risk-first（风险优先） | 最大单点故障在哪？ |
-| | counter-intuitive（反直觉） | 最强共识值得挑战吗？ |
-| | adversarial（对抗） | 如果我是对手，怎么攻击？ |
-| | hidden-assumption（隐含假设） | 前提不成立时结论怎么变？ |
-| 收敛执行 | minimalist（极简） | 只保留一个，选哪个？ |
-| | time-horizon（时间维度） | 3 年后回看什么最重要？ |
-| | role-reversal（角色反转） | 如果我是对方，最抗拒什么？ |
-| 空间定位 | peer-compare（同类对比） | 最值得对比的参照物是什么？ |
-| | scale-effect（尺度效应） | 10 倍规模时什么质变？ |
+| Level | Use When | Route |
+|---|---|---|
+| Level 0 | very small or quick rewrite | Quick Rewrite |
+| Level 1 | clear intent, wording/structure improvement | Quick Rewrite or Clarify First |
+| Level 2 | decision, comparison, optimization, trade-off | Pressure Prompt |
+| Level 3 | high-risk, multi-path, strategy, requested review | Judge Mode |
 
----
+## Key Concepts
 
-## 五种角色预设注入
+### Intent Fidelity
 
-在最终问题的**开头**注入思维角色，迫使 AI 在回答前就切换到正确的思考模式。
+The upgraded prompt must preserve the user's original goal. Do not add a conclusion, stance, or scenario the user did not provide.
 
-| 角色 | 定位 | 适用意图 | 注入效果 |
-|------|------|---------|---------|
-| **领域专家** | 深耕10年+的实战派 | 理解、诊断、学习、梳理 | 不要教科书答案，给实战结论 |
-| **魔鬼代言人** | 专职挑刺的审查员 | 决策、分析、验证（+高共识兜底） | 专找共识漏洞，主动为反面立场辩护 |
-| **实战操盘手** | 把方案变成结果的执行派 | 规划、优化、生成、求助 | 不问"什么是对的"，问"什么能落地"，给出本周可动的第一步 |
-| **攻防教练** | 说服与辩论专精 | 说服、对比 | 站在对方立场找抗拒点，设计逐层瓦解的说服链路 |
-| **跨界猎人** | 跨领域模式搬运工 | 探索 | 引入本领域之外的参考系和类比 |
+### Scenario Slots
 
-**自动匹配规则**：高共识问题自动用魔鬼代言人；其余按意图类型默认映射。
+Known scenarios such as computer purchase, AI subscription choice, PRD generation, UI review, frontend demo generation, and learning plans use scenario-specific slots before generic questions.
 
----
+### Default-Answer Stress Test
 
-## Judge 独立审查（Level 3 独有）
+SharpInput may add pressure when generic answers would be weak. This is not forced contrarian behavior. The goal is to make the next AI explain trade-offs, failure conditions, and concrete next steps.
 
-Level 3 的每条路径都经过独立 Judge 子代理的三重审查：
+### Judge Review
 
-| 审查项 | 说明 |
-|--------|------|
-| **反方辩护** | 假设其他路径更好，用 3 个论据攻击当前路径 |
-| **真实反例** | 找一个类似策略失败的真实案例（主体 + 时间 + 原因） |
-| **翻转条件** | 什么具体参数下结论会反转？ |
+Judge is reserved for Level 3, high-risk decisions, multi-path prompts, or explicit review requests. It checks intent fidelity, scenario fit, missing slots, pressure fit, and copy readiness.
 
-审查结果呈现给用户，附风险判定（可靠 / 有条件 / 高风险），最低风险路径排第一。
+## Project Structure
 
----
-
-## 自学习系统
-
-- **静默生效**：偏好自动应用，不打断交互节奏
-- **滑动窗口**：基于最近 10 次交互，自然衰减
-- **角度偏好**：记住你偏好的维度路径，下次优先匹配
-- **等级倾向**：如果你 ≥70% 用 Level 3，低级别时主动建议升级
-- **随时重置**：说「重置偏好」即可清零
-
----
-
-## 完整示例
-
-### 示例：问题陈述 -> L2 施压
-
-**原输入：**
-> 我们的转化率一直在下降。
-
-**SharpInput 输出（L2）：**
-
-```
-[SharpInput] Level 2 -- 意图: 分析（主）+ 诊断（次）
-
-角色预设: 领域专家 -- 需要深度诊断而非表面建议
-
-施压约束:
-- 立场: 必须指出问题在产品/市场/销售中的哪个环节，不允许说"需要综合分析"
-- 反共识: 给出一个大多数人不会考虑的根因假设，并为其辩护
-- 取舍: 说明你选择诊断这个环节放弃了什么
-- 可执行: 本周内可以做的一件具体验证动作
-
-> 请以「深耕该领域10年以上的资深从业者」的视角回答。不要给教科书答案，
-  给我实战结论——你见过这个领域所有的坑和反直觉的真相。
->
-> 我们是一个 toB SaaS 产品，注册到付费转化率从 8% 降到 3%，
-  持续 3 个月。流量没变，产品没大改。
->
-> **必须明确回答：问题出在产品、市场还是销售环节？**
-> 不允许说"需要综合分析"。
->
-> 给出一个大多数人不会考虑的根因假设，并为其辩护。
->
-> 如果按你的诊断做了调整，3 个月后最可能后悔的是什么？
-
-演化锚: toB SaaS 转化率下降 3 年趋势：从 2019 年 PLG 崛起
-  -> 2022 年买方市场倒逼 -> 2025 年 AI 辅助决策普及
-同类锚: Salesforce（企业级 CRM，转化路径透明）
-  vs Shopify（PLG 模式，0 摩擦入门）
-
-适用边界: 有明确指标的 toB SaaS 场景；无数据基础时标注 [需验证]
-风险提示: 根因诊断存在高度不确定性，建议结合 A/B 测试验证
-```
-
----
-
-## 适用场景
-
-| 适合 | 不适合 |
-|------|--------|
-| 决策类：技术选型、职业选择、产品方向 | 事实查询：「什么是闭包」（L0 快速通道） |
-| 复杂分析：竞品分析、架构设计、方案评估 | 简单问答：天气、汇率、日期计算 |
-| 战略思考：商业模式、增长策略、优先级 | 代码 Debug：报错信息（L0） |
-| 问题陈述：转化率下降、用户流失、性能瓶颈 | 翻译/摘要：纯信息转换（L0） |
-| 需求描述：产品设计、方案制定、功能规划 | |
-| 想法验证：架构重构、策略调整、模式创新 | |
-| 方案评审：技术方案、产品方案、商业计划 | |
-
-**一句话判断**：如果扔给搜索引擎也能得到差不多答案 → Level 0 帮你注入反共识角度。复杂决策 → Level 3 全面对抗分析。
-
----
-
-## 安装 & 使用
-
-### 安装
-
-```bash
-git clone https://github.com/gaoyechen/SharpInput.git
-```
-
-将 `SKILL.md` 和 `references/` 目录放入你的 AI Agent 的 skills 目录中。
-
-### 触发方式
-
-```
-帮我优化 / 优化输入 / 优化提问 / 优化一下
-帮我理清思路 / 帮我完善一下 / 帮我改一下
-这样表述好不好 / 这样说对不对 / 我这样说合适吗
-```
-
-### 等级控制
-
-```
-说「深度模式」  -> Level 3
-说「简单点」    -> Level 1
-说「升级」/「降级」-> 切换级别
-说「重置偏好」  -> 清除历史偏好
-```
-
----
-
-## 项目结构
-
-```
+```text
 SharpInput/
-├── SKILL.md                         # 主文件：完整流程 + Gate + 边界规则
+├── SKILL.md
+├── AGENT.md
+├── archive/
+│   └── SharpInput-v2.4.md
+├── skills/
+│   ├── intent-detection/
+│   ├── scenario-detection/
+│   ├── scenario-slot-elicitation/
+│   ├── context-completion/
+│   ├── description-clarifier/
+│   ├── prompt-compiler/
+│   ├── pressure-strategy/
+│   ├── judge-review/
+│   └── output-renderer/
 ├── references/
-│   ├── output-templates.md          # Level 0~3 完整输出模板
-│   ├── judge-prompt.md              # Judge 子代理 prompt
-│   ├── prompt-patterns.md           # 共识识别 + 维度映射 + 施压策略
-│   ├── intent-details.md            # 意图详细信号 + 负面意图检测
-│   ├── self-learning.md             # 自学习系统规范
-│   └── user-preferences.md          # 用户偏好数据（自动维护）
-├── README.md
-└── LICENSE                          # MIT License
+│   ├── intent-taxonomy.md
+│   ├── scenario-slot-templates.md
+│   ├── prompt-patterns.md
+│   ├── pressure-strategies.md
+│   ├── output-templates.md
+│   ├── judge-rubric.md
+│   └── handoff-contract.md
+├── examples/
+└── tests/
 ```
 
----
+## Quality Checks
 
-## ⭐ 给项目一个星
+Use `tests/regression-cases.md` after structural changes.
 
-如果你觉得 SharpInput 有用，**请在 GitHub 上给一颗星**。
+The final output must:
 
-你的星让这个项目被更多人看到，让更多人从 AI 获得真正的深度答案。
-
-[![Star on GitHub](https://img.shields.io/github/stars/gaoyechen/SharpInput?style=social&label=Star)](https://github.com/gaoyechen/SharpInput)
-
----
+- identify Level, intent, scenario, and context status
+- explain why the original input is weak
+- include one complete upgraded prompt
+- state what was added
+- include a trade-off or risk note
+- avoid directly solving the underlying task
 
 ## License
 
