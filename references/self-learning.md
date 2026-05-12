@@ -1,4 +1,4 @@
-# SharpInput Self-Learning System (v2.3+)
+# SharpInput Self-Learning System (v2.5+)
 
 ## Overview
 
@@ -63,6 +63,23 @@ On next invocation, read preferences to personalize the flow.
 | outcome_score | int \| null | null (未追踪), 1-5 (见输出效果追踪) |
 | outcome_note | string \| null | "AI回答质量明显提升" |
 
+#### Reflection (v2.5+ — Reflective Evolution)
+
+Only present when `outcome_score` is 1 or 2 and reflective diagnosis was triggered.
+
+| Field | Type | Example |
+|-------|------|---------|
+| reflection | object \| null | see below |
+
+```json
+{
+  "failure_cause": "intent_misidentification | scenario_mismatch | over_pressure | context_gap | generic_output | unknown",
+  "diagnosis": "用户想问技术选型，但被识别为产品决策，导致优化方向偏了",
+  "auto_action": "updated correction_map: '技术选型' → '分析'",
+  "confidence": "high | medium | low"
+}
+```
+
 #### Confirmed Context
 
 | Field | Type | Example |
@@ -85,6 +102,7 @@ On next invocation, read preferences to personalize the flow.
 | intent_priming | object\|null | {"primary_intent_top3": ["决策","分析","验证"], "corrections": {}} |
 | context_autofill | object | {"role": "产品经理", "tech_stack": "React + Python"} |
 | outcome_stats | object\|null | {"avg_score": 4.2, "positive_ratio": 0.8, "tracked_count": 5} |
+| reflection_stats | object\|null | {"total_reflections": 3, "top_cause": "intent_misidentification", "auto_corrections": 2} |
 
 ### outcome_stats 字段（v2.4+）
 
@@ -95,6 +113,15 @@ On next invocation, read preferences to personalize the flow.
 | tracked_count | int | 有 outcome_score 的条目数 |
 | best_intent | string | 评分最高的意图类型 |
 | worst_intent | string | 评分最低的意图类型 |
+
+### reflection_stats 字段（v2.5+）
+
+| 子字段 | 类型 | 说明 |
+|--------|------|------|
+| total_reflections | int | 触发反思诊断的总次数 |
+| top_cause | string | 出现最多的 failure_cause 类型 |
+| auto_corrections | int | 自动修正成功执行的次数 |
+| persistent_issues | string[] | 连续3次反思未改善的 failure_cause 列表 |
 
 完整 JSON 示例见 `user-preferences.json`。
 
@@ -121,6 +148,59 @@ After Stage 3 Step 2 outputs the final question:
 | 跨会话效果对比（"比上次更好了"） | 无需更新，已记录在 timestamp | 用于 summary 效果趋势分析 |
 
 效果追踪触发后即时更新 history 中对应条目。
+
+### Reflective Evolution（v2.5+ — 反思式进化）
+
+当 `outcome_score` 为 1 或 2 时，**自动触发反思诊断**。这是从"被动记录"到"主动诊断"的升级。
+
+#### 触发条件
+
+- `outcome_score` ≤ 2（用户明确表示优化后效果差）
+- 或用户反馈包含以下模式："效果不好"、"更差了"、"偏了"、"完全不对"、"答非所问"
+
+#### 反思诊断流程
+
+Step 1: **归因分析** — 判断失败属于哪个环节
+
+| failure_cause | 判断依据 | 典型表现 |
+|--------------|---------|---------|
+| `intent_misidentification` | 用户说"不是这个意思"或纠正了意图 | 优化方向与用户期望完全不一致 |
+| `scenario_mismatch` | 场景模板被错误应用或缺少匹配场景 | 优化后的prompt带了不相关场景的约束 |
+| `over_pressure` | 用户说"太强硬"、"太偏激"、"不需要这么极端" | 压力策略过度，改变了用户原始意图 |
+| `context_gap` | 用户说"没问到关键点"、"缺了重要信息" | 关键上下文缺失导致prompt空洞 |
+| `generic_output` | 用户说"太泛了"、"跟没优化一样" | 优化后prompt仍有大量通用表述 |
+| `unknown` | 无法归因 | 多因素混合或用户反馈模糊 |
+
+Step 2: **自动修正** — 根据归因执行对应修正动作
+
+| failure_cause | 自动修正动作 |
+|--------------|-------------|
+| `intent_misidentification` | 更新 `correction_map`：将本次输入模式→正确意图的映射写入 |
+| `scenario_mismatch` | 在该场景模板上标记 `mismatch_count +1`；≥3次时标记为"待审查" |
+| `over_pressure` | 降低当前 `pressure_strategy` 的优先级；记录到 `strategy_penalty` |
+| `context_gap` | 将缺失的关键字段加入该意图的 `required_fields` 列表 |
+| `generic_output` | 在该意图类型的编译规则中增加"禁止通用表述"的强化约束 |
+| `unknown` | 仅记录，不做自动修正 |
+
+Step 3: **记录反思结果** — 写入 history 对应条目的 `reflection` 字段
+
+Step 4: **更新 summary** — 在 `reflection_stats` 中累计统计
+
+#### 反思结果的消费
+
+反思产生的修正数据在后续 session 中被自动消费：
+
+- `correction_map` 更新 → 影响 Intent Priming（已有机制，自然生效）
+- `strategy_penalty` → 在 Pressure Strategy 路由时降低被罚策略的优先级
+- `required_fields` 补充 → 在 Context Completion 阶段提高这些字段的询问权重
+- `mismatch_count` → 在 Scenario Detection 阶段增加对该场景的审查力度
+
+#### 反思限制
+
+- 每次反思只产生 **一个** `failure_cause`，不做多重归因（避免噪音）
+- `confidence` 为 `low` 时，不做自动修正，仅记录
+- 反思不会覆盖用户的直接反馈（如用户说"重置偏好"，反思数据也一并清除）
+- 连续 3 次反思同一 `failure_cause` 且自动修正未改善 → 标记为 `persistent_issue`，在下次输出时提醒用户
 
 ### 写入规则
 
