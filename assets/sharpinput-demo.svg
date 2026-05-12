@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 560" role="img" aria-label="SharpInput terminal demo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1120" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="18" />
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="820" height="560" rx="28" fill="url(#bg)" />
+
+  <circle cx="680" cy="120" r="120" fill="#7c3aed" opacity="0.12" filter="url(#soft)" />
+  <circle cx="160" cy="420" r="140" fill="#2563eb" opacity="0.10" filter="url(#soft)" />
+
+  <rect x="18" y="18" width="784" height="40" rx="14" fill="#0f172a" stroke="#1e293b" />
+  <circle cx="36" cy="38" r="6" fill="#f87171" />
+  <circle cx="54" cy="38" r="6" fill="#fbbf24" />
+  <circle cx="72" cy="38" r="6" fill="#34d399" />
+  <text x="410" y="44" text-anchor="middle" fill="#94a3b8" font-family="Menlo, Consolas, monospace" font-size="14">SharpInput Terminal</text>
+
+  <text x="32" y="94" fill="#22d3ee" font-family="Menlo, Consolas, monospace" font-size="15" font-weight="700">$&gt; </text>
+  <text x="84" y="94" fill="#e2e8f0" font-family="Menlo, Consolas, monospace" font-size="15">
+    <tspan>帮我优化这个问题：</tspan>
+    <tspan fill="#facc15">为什么转化率一直在下降？</tspan>
+    <tspan opacity="0.9">█</tspan>
+  </text>
+
+  <g transform="translate(32,120)">
+    <rect width="756" height="72" rx="18" fill="#111c32" stroke="#1d3557" stroke-opacity="0.9" />
+    <text x="22" y="30" fill="#38bdf8" font-family="Menlo, Consolas, monospace" font-size="14" font-weight="700">🔍 SharpInput 开始编译...</text>
+    <text x="22" y="52" fill="#cbd5e1" font-family="Menlo, Consolas, monospace" font-size="12">意图识别 → 场景检测 → 上下文补全 → Prompt 编译 → 压力测试</text>
+  </g>
+
+  <g transform="translate(32,218)">
+    <rect width="360" height="190" rx="18" fill="#111827" stroke="#334155" />
+    <rect width="360" height="42" rx="18" fill="#1e293b" />
+    <text x="18" y="28" fill="#f87171" font-family="Menlo, Consolas, monospace" font-size="13" font-weight="700">❌ 你原来的问法</text>
+    <text x="18" y="72" fill="#cbd5e1" font-family="Menlo, Consolas, monospace" font-size="12">"为什么转化率一直在下降？"</text>
+    <text x="18" y="104" fill="#94a3b8" font-family="Menlo, Consolas, monospace" font-size="12">⬇ AI 典型回答：</text>
+    <text x="18" y="132" fill="#64748b" font-family="Menlo, Consolas, monospace" font-size="11">1. 可能是市场环境变化...</text>
+    <text x="18" y="150" fill="#64748b" font-family="Menlo, Consolas, monospace" font-size="11">2. 建议优化用户体验...</text>
+    <text x="18" y="168" fill="#64748b" font-family="Menlo, Consolas, monospace" font-size="11">3. 可以做 A/B 测试...</text>
+  </g>
+
+  <g transform="translate(428,218)">
+    <rect width="360" height="190" rx="18" fill="#0c1929" stroke="#22d3ee" stroke-opacity="0.45" />
+    <rect width="360" height="42" rx="18" fill="#102a43" />
+    <text x="18" y="28" fill="#34d399" font-family="Menlo, Consolas, monospace" font-size="13" font-weight="700">✅ SharpInput 升级后</text>
+    <text x="18" y="72" fill="#e2e8f0" font-family="Menlo, Consolas, monospace" font-size="11">我是一位 toB SaaS PM，注册→付费转化率 8%→3%</text>
+    <text x="18" y="90" fill="#e2e8f0" font-family="Menlo, Consolas, monospace" font-size="11">持续 3 个月，流量没变、产品没大改。</text>
+    <text x="18" y="118" fill="#facc15" font-family="Menlo, Consolas, monospace" font-size="12" font-weight="700">你必须选边站：问题在产品、市场还是销售？</text>
+    <text x="18" y="146" fill="#a5f3fc" font-family="Menlo, Consolas, monospace" font-size="11">给一个大多数人不会想的根因假设并辩护。</text>
+    <text x="18" y="168" fill="#94a3b8" font-family="Menlo, Consolas, monospace" font-size="11">输出：根因假设 + 30天实验 + 翻转条件</text>
+  </g>
+
+  <g transform="translate(32,428)">
+    <rect width="756" height="94" rx="18" fill="#0b1722" stroke="#2563eb" stroke-opacity="0.5" />
+    <text x="22" y="32" fill="#38bdf8" font-family="Menlo, Consolas, monospace" font-size="13" font-weight="700">⚡ 编译结果</text>
+    <text x="22" y="58" fill="#e2e8f0" font-family="Menlo, Consolas, monospace" font-size="12">✅ 意图：决策咨询(主) + 诊断分析(次)</text>
+    <text x="22" y="78" fill="#e2e8f0" font-family="Menlo, Consolas, monospace" font-size="12">✅ 场景：转化率下降 → toB SaaS 流失漏斗模板</text>
+    <text x="480" y="58" fill="#facc15" font-family="Menlo, Consolas, monospace" font-size="12" font-weight="700">压力策略：强制选边 + 反共识假设</text>
+    <text x="480" y="78" fill="#34d399" font-family="Menlo, Consolas, monospace" font-size="12" font-weight="700">质量评分：91 / 100</text>
+  </g>
+</svg>

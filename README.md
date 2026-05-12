@@ -1,8 +1,23 @@
 # ⚡ SharpInput v3.0
 
-**AI Input Compiler — 把"烂问题"变成"好 Prompt"**
+<p align="center">
+  <strong>AI Input Compiler — 把"烂问题"变成"好 Prompt"</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/gaoyechen/SharpInput/stargazers"><img src="https://img.shields.io/github/stars/gaoyechen/SharpInput?style=social" alt="Stars"></a>
+  <a href="https://github.com/gaoyechen/SharpInput/network/members"><img src="https://img.shields.io/github/forks/gaoyechen/SharpInput?style=social" alt="Forks"></a>
+  <a href="https://github.com/gaoyechen/SharpInput/issues"><img src="https://img.shields.io/github/issues/gaoyechen/SharpInput" alt="Issues"></a>
+  <a href="https://github.com/gaoyechen/SharpInput/blob/main/LICENSE"><img src="https://img.shields.io/github/license/gaoyechen/SharpInput" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/platform-AI%20Agent%20Skill-blueviolet" alt="Platform">
+  <img src="https://img.shields.io/badge/version-v3.0-brightgreen" alt="Version">
+</p>
 
 > **你花了几百块订阅 AI，却还在用搜索引擎级别的提问方式。**
+
+<p align="center">
+  <img src="assets/sharpinput-demo.svg" alt="SharpInput Demo" width="100%" />
+</p>
 
 ---
 
