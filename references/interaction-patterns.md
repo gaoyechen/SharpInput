@@ -10,7 +10,7 @@ Use this file when SharpInput needs a user choice through `AskUserQuestion`.
 - Keep to 2-4 options plus the platform's free-form "Other" option when available.
 - If the tool fails, print the same options as concise text and ask the user to reply with the option label.
 
-## 选项推导规则（v2.3）
+## 选项推导规则（v2.4）
 
 当需要从用户输入推导具体选项时（如 Context Gap 模板的 `[从原文推导的具体选项]`），按以下算法：
 
@@ -20,6 +20,20 @@ Use this file when SharpInput needs a user choice through `AskUserQuestion`.
 3. 每个选项必须说明选择后的输出方向变化
 4. 规则：1 个通用型 + 1 个输入推导的具体型 + 1 个反方向型
 ```
+
+### 连续数值型 slot 处理规则（v2.4 新增）
+
+当 slot 的值是连续数值（预算、金额、数量、时间长度等）时，**禁止用固定区间选项**：
+
+- ❌ 错误: `["5000左右", "6000-7000", "7000-9000", "不限"]`
+- ✅ 正确: 直接用自然语言提问，引导用户输入精确数值
+
+示例:
+- 预算: 「你的预算上限大概是多少？直接说数字就行，比如 4800、6500 等。」
+- 时间: 「你有多少天准备时间？说个具体数字。」
+- 人数: 「团队多少人？」
+
+原因: 固定区间会丢失精度（4800 和 5500 都会被归到「5000左右」，但竞品范围完全不同），且用户的真实数字往往不在预设区间边界上。
 
 示例：输入"我们团队要从单体架构迁移到微服务，团队8个人，预算有限"
 - 通用型: "先梳理现有的架构和数据流" → 输出偏重诊断和迁移准备

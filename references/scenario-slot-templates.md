@@ -28,6 +28,9 @@ Useful slots:
 Ask first:
 > 你最不能妥协的是预算、用途，还是便携/性能？
 
+**Budget slot rule (mandatory)**: Budget is a continuous value — do NOT use fixed-range options (e.g. "5000左右 / 6000-7000 / 7000-9000"). Instead, ask with a free-text prompt so the user can input their exact number. Example:
+> 你的预算上限大概是多少？直接说数字就行，比如 4800、6500 等。
+
 ### ai_subscription_choice
 
 Use for ChatGPT Plus, Claude Pro, Gemini, Perplexity, local model, or AI tool subscription comparison.
