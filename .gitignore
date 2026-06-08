@@ -1,6 +1,7 @@
 .claude/
 .omc/
 references/user-preferences.md
+references/user-preferences.json
 
 # test artifacts
 tests/*
