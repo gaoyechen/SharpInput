@@ -1,6 +1,6 @@
 # Handoff Contract
 
-All SharpInput modules update the same handoff object. The object prevents natural-language handoff drift between capability skills.
+All SharpInput modules update the same handoff object. The object prevents natural-language handoff drift between capability modules.
 
 ## Canonical Object
 

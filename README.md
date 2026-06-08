@@ -1,7 +1,7 @@
-# ⚡ SharpInput v3.0
+# ⚡ SharpInput v3.1
 
 <p align="center">
-  <strong>AI Input Compiler — 把"烂问题"变成"好 Prompt"</strong>
+  <strong>AI Input Compiler — 把模糊输入编译成可直接复制的高质量 Prompt</strong>
 </p>
 
 <p align="center">
@@ -9,11 +9,27 @@
   <a href="https://github.com/gaoyechen/SharpInput/network/members"><img src="https://img.shields.io/github/forks/gaoyechen/SharpInput?style=social" alt="Forks"></a>
   <a href="https://github.com/gaoyechen/SharpInput/issues"><img src="https://img.shields.io/github/issues/gaoyechen/SharpInput" alt="Issues"></a>
   <a href="https://github.com/gaoyechen/SharpInput/blob/main/LICENSE"><img src="https://img.shields.io/github/license/gaoyechen/SharpInput" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/platform-AI%20Agent%20Skill-blueviolet" alt="Platform">
-  <img src="https://img.shields.io/badge/version-v3.0-brightgreen" alt="Version">
+  <img src="https://img.shields.io/badge/platform-Hermes%20Agent-blueviolet" alt="Platform">
+  <img src="https://img.shields.io/badge/version-v3.1-brightgreen" alt="Version">
 </p>
 
-> **你花了几百块订阅 AI，却还在用搜索引擎级别的提问方式。**
+> 你花了几百块订阅 AI，却还在用搜索引擎级别的提问方式。
+
+SharpInput 是一个 **Hermes Agent skill**：它不直接替你回答问题，而是先把你的模糊输入、提问、想法、方案或需求，编译成一个更清楚、更有约束、更不容易得到废话回答的 Prompt。
+
+---
+
+## 30 秒看懂
+
+你原来这样问：
+
+> 我们的转化率一直在下降，怎么办？
+
+SharpInput 会把它升级成：
+
+> 我们是 toB SaaS，注册→付费转化率从 8% 降到 3%，持续 3 个月。流量来源没有明显变化，产品近三个月没有大改。请你先判断问题更可能出在产品、市场还是销售，并必须选边站。给出一个大多数人不会先想到的根因假设，并设计一个 30 天内可验证的小实验。最后说明：如果按你的诊断执行，三个月后最可能后悔什么？
+
+差别不是“文案更漂亮”，而是：**目标、背景、约束、判断标准、输出格式和压力测试都被补齐了。**
 
 <p align="center">
   <img src="assets/sharpinput-demo.svg" alt="SharpInput Demo" width="100%" />
@@ -21,150 +37,216 @@
 
 ---
 
-## 🤦 这不是你吗？
+## 适合谁
 
-| 你平时这么问 | AI 这么答 | 你什么感觉 |
-|-------------|-----------|-----------|
-| "帮我分析一下" | 泛泛列 5 点，每点就一行 | 这也叫分析？ |
-| "XX和YY哪个好" | "各有优劣，建议根据实际需求选择" | 废话文学大师 |
-| "这段代码有问题" | "建议优化代码结构，提高可维护性" | 说了跟没说一样 |
-| "写个方案" | 教科书模板，换谁都能用 | 这方案值个屁钱 |
+- 经常觉得 AI 回答“看似全面，其实没用”的人
+- 产品经理、开发者、创业者、内容创作者
+- 想让 AI 给出判断、方案、分析、评审，而不是安全废话的人
+- Hermes Agent 用户，或正在组织个人 AI Agent skill 工作流的人
 
-**每问一次，就浪费一次 API 调用费。**
+不适合：
 
-你不是不会用 AI。你是**不会问**。
-
----
-
-## ✅ SharpInput 治这个
-
-```
-你的烂输入
-    ↓  ⚡ SharpInput —— AI 输入编译器
-    ↓  意图识别 → 场景检测 → 上下文补全 → Prompt编译 → 压力测试
-    ↓
-复制即用的高质量 Prompt
-```
-
-**不是帮你回答问题，是帮你把问题本身升级。** 一条命令，让你的 AI 回答质量从"搜索引擎水平"变成"行业专家水平"。
+- 你想让 AI 直接执行任务，而不是优化输入
+- 你只需要事实查询、代码执行、文件修改
+- 你不想补任何上下文，只想让 AI 猜你的意图
 
 ---
 
-## 🔥 看看区别
+## 安装
 
-### 场景 1：历史分析
+详细安装见 [INSTALL.md](INSTALL.md)。
 
-| 你原来的问法 | SharpInput 升级后 |
-|-------------|-------------------|
-| 为什么大统一的第一个王朝都很短命？ | 你是一位中国历史学者...请从"统一方式与合法性""制度设计与继承危机""中心-边缘整合成本""精英吸纳与排斥策略"四个维度，对秦、西晋、隋做结构性对比分析。输出要求：对比表格 + 2 个反共识观点 + 史料支撑 |
-
-→ **AI 回答从"教科书摘要"变成「有观点的深度分析」**
-
-### 场景 2：商业决策
-
-| 你原来的问法 | SharpInput 升级后 |
-|-------------|-------------------|
-| 我们的转化率一直在下降，怎么办？ | 我们是 toB SaaS，注册→付费转化率 8%→3% 持续 3 个月，流量没变、产品没大改。**你必须选边站：问题出在产品、市场还是销售？** 给一个大多数人不会想的根因假设并辩护。如果按你的诊断做了，3 个月后最可能后悔什么？ |
-
-→ **AI 不再给搜索引擎第一页的通用建议，而是给你有观点的决策支持**
-
-### 场景 3：技术选型
-
-| 你原来的问法 | SharpInput 升级后 |
-|-------------|-------------------|
-| 我觉得应该用微服务重构 | 三条路径任你选：**（A）风险优先**——假设重构让团队产出降 40% 半年，还坚持吗？**（B）反直觉**——说服我为什么不该用微服务，列出 3 个单体更优的理由。**（C）时间轴**——站在 3 年后回看，最大的技术债是什么？ |
-
-→ **你选路径，AI 给你定向深度分析，而不是泛泛而谈的"微服务优缺点"**
-
----
-
-## 🎯 凭什么 SharpInput 能做到？
-
-| 能力 | 说明 |
-|------|------|
-| **意图识别** | 14 种意图双标签识别，不误判你到底是"想了解"还是"要决策" |
-| **场景自动检测** | 电脑选购、AI 订阅、PRD 生成、UI 评审…识别场景后自动填入领域模板 |
-| **四级施压系统** | Level 0-3 自动路由。查资料秒过，复杂决策走上完整对抗流程 |
-| **强制上下文补全** | Level 2+ 强制补齐 audience/ goal/ constraints——你忘了说的，它替你想 |
-| **认知压力测试** | 逼 AI 选边站、找反例、打掉幻觉、承认"放弃什么换什么" |
-| **Judge 审查** | Level 3 高风险决策，独立审查路径质量，给出反转条件和反方攻击 |
-| **自我学习** | 记住你的偏好，越用越懂你——"重置偏好"一键清零 |
-
-**不是 demo，是真的能打的工具。**
-
----
-
-## 🚀 怎么用？
-
-### 安装
+### Hermes Agent 快速安装
 
 ```bash
 git clone https://github.com/gaoyechen/SharpInput.git
+mkdir -p "$LOCALAPPDATA/hermes/skills/sharpinput"
+cp -R SharpInput/* "$LOCALAPPDATA/hermes/skills/sharpinput/"
 ```
 
-把 `SKILL.md` 和 `references/` 放进你的 AI Agent skills 目录。
+然后在 Hermes 中运行：
 
-### 触发
-
-说其中一句话，SharpInput 自动接管：
-
-```
-帮我优化这个问题 / 这样问 AI 行不行 / 帮我润色一下这个 prompt
-帮我理清思路 / 我这样说合适吗 / 帮我完善一下
+```text
+/reload-skills
+/skill sharpinput
 ```
 
-### 控制等级
+验证：
 
+```bash
+hermes chat --skills sharpinput -q "帮我优化：为什么我的 GitHub skill 没有 star？" -Q
 ```
-深度模式   → Level 3（完整对抗，复杂决策专用）
-简单优化   → Level 1（轻度润色）
-施压一下   → Level 0（快速输出好问题）
+
+> Windows 用户：`$LOCALAPPDATA/hermes/skills/sharpinput` 通常对应 `C:\Users\<用户名>\AppData\Local\hermes\skills\sharpinput`。
+
+---
+
+## 用法
+
+说这些话时，SharpInput 应该接管：
+
+```text
+帮我优化这个问题
+这样问 AI 行不行？
+帮我润色一下这个 prompt
+帮我理清这个需求，变成好问题
+我想让 AI 帮我做 X，应该怎么提问？
+```
+
+控制深度：
+
+```text
+简单优化   → Level 1，轻度改写，少问问题
+施压一下   → Level 2，增加约束、判断标准、反废话机制
+深度模式   → Level 3，适合高风险决策、方案评审、多路径比较
 ```
 
 ---
 
-## 📦 项目结构
+## 真实运行示例
 
+命令：
+
+```bash
+hermes chat --skills sharpinput -q "帮我优化：为什么我的 GitHub skill 没有 star？请输出一个可以直接复制给 AI 的提问。" -Q
 ```
+
+输出节选：
+
+```text
+[SharpInput 识别结果]
+Level: 2
+主意图: 让 AI 帮你诊断一个 GitHub 项目/skill 没有 star 的原因
+场景: GitHub 项目增长/传播/定位分析
+上下文状态: 缺 repo 链接、目标用户、README、发布渠道，所以用占位符保留
+
+[升级版问题]
+> 你是一名熟悉 GitHub 开源项目增长、开发者工具传播、AI Agent/Skill 生态的产品顾问。
+>
+> 请帮我严厉分析：为什么我这个 GitHub 上的 skill/项目没有 star？
+> ...
+> 不要默认“没人 star = 项目不好”，也不要默认“多宣传就行”。
+```
+
+这就是 SharpInput 的核心价值：**不是替你回答，而是先把“弱问题”变成一个值得被认真回答的问题。**
+
+---
+
+## 它怎么工作
+
+```text
+用户弱输入
+  ↓
+触发判断
+  ↓
+意图识别 → 场景检测 → 上下文补全
+  ↓
+Prompt 编译 → 默认答案压力测试 → 质量检查
+  ↓
+复制即用的升级版 Prompt
+```
+
+核心能力：
+
+| 能力 | 作用 |
+|---|---|
+| 意图识别 | 判断用户到底是在求解释、决策、对比、规划、验证还是表达 |
+| 场景检测 | 针对电脑选购、AI 订阅、PRD、UI 评审、学习备考等场景补关键槽位 |
+| 上下文补全 | 只问真正影响输出质量的问题，避免泛泛追问“背景是什么” |
+| Prompt 编译 | 把角色、目标、约束、判断标准、步骤和输出格式组织成可复制 Prompt |
+| 默认答案压力测试 | 防止 AI 输出“看情况”“各有优劣”“建议综合考虑”式废话 |
+| Judge 审查 | Level 3 下对高风险决策和方案评审做更严格的质量检查 |
+
+---
+
+## 项目结构
+
+```text
 SharpInput/
-├── SKILL.md            # 入口 + 运行时检查清单
-├── AGENT.md            # Agent 编排流程 + 模块间数据传递规范
-├── skills/             # 专项能力模块（按需加载）
-│   ├── intent-detection/      # 意图识别
-│   ├── scenario-detection/    # 场景模板匹配
-│   ├── context-completion/    # 上下文强制补全
-│   ├── prompt-compiler/       # Prompt 编译
-│   ├── pressure-strategy/     # 认知施压策略
-│   ├── judge-review/          # 独立质量审查
-│   └── output-renderer/       # 用户界面输出
-├── references/         # 13 个参考文件：意图分类法、场景模板、评分 Rubric
-├── examples/           # 10 个各 Level/场景示例用例
-└── tests/              # 回归测试 + 质量评分标准
+├── SKILL.md                         # Hermes skill 入口
+├── AGENT.md                         # 编排流程和 handoff 规范
+├── modules/                         # 内部能力模块，不会被 Hermes 识别成独立 skills
+│   ├── intent-detection.md
+│   ├── scenario-detection.md
+│   ├── scenario-slot-elicitation.md
+│   ├── context-completion.md
+│   ├── description-clarifier.md
+│   ├── prompt-compiler.md
+│   ├── pressure-strategy.md
+│   ├── judge-review.md
+│   └── output-renderer.md
+├── references/                      # taxonomy、rubric、模板和隐私安全的示例状态文件
+├── examples/                        # 示例输入和预期路线
+├── tests/                           # 回归用例和质量评分标准
+├── INSTALL.md                       # 安装、升级、卸载和排障
+└── PRIVACY.md                       # 本地状态和隐私说明
 ```
 
-> 设计理念：**Agent 管流程，Skill 管能力。** 不把所有逻辑塞进一个文件。
+设计原则：**Agent 管流程，modules 管能力。** 内部模块不再放在顶层 `skills/` 目录下，避免安装后污染用户的 Hermes skills 列表。
 
 ---
 
-## 📌 更新日志
+## 隐私和本地状态
+
+SharpInput 不应该把真实用户偏好写进仓库或 skill 包内部。
+
+仓库只提供：
+
+```text
+references/user-preferences.schema.json
+references/user-preferences.example.json
+```
+
+真实偏好应存储在用户本地 profile 数据目录，例如：
+
+```text
+$HERMES_HOME/data/sharpinput/user-preferences.json
+```
+
+详细说明见 [PRIVACY.md](PRIVACY.md)。
+
+---
+
+## 回归检查
+
+修改 `SKILL.md`、`AGENT.md`、`modules/` 或 `references/` 后，至少检查：
+
+```text
+tests/regression-cases.md
+tests/quality-rubric.md
+```
+
+关键标准：
+
+- 只在“优化输入/Prompt”场景触发
+- 不直接回答底层任务
+- 输出必须包含一个完整、可复制的升级版 Prompt
+- Level 2+ 不应该跳过关键上下文
+- 不应该强行反共识或过度施压
+
+---
+
+## Changelog
+
+### v3.1
+
+- 将内部能力文件从 `skills/*/SKILL.md` 移到 `modules/*.md`，避免被 Hermes 识别成多个独立 skills
+- 主 skill canonical name 改为 `sharpinput`
+- 移除仓库中的真实 `user-preferences.json`，改为 schema/example
+- 补充安装、隐私和真实运行说明
+- README 中的版本、模块数和结构说明与实际仓库对齐
 
 ### v3.0
-- 🔧 **修复**：`context-completion` 新增 Level-aware 强制门控，Level 2+ 不再能跳过上下文补全
-- ✨ **新增**：14 种意图分类法 + 双标签识别（主意图/次意图）
-- ✨ **新增**：7 个场景槽位模板（电脑选购/AI 订阅/PRD 生成/UI 评审…）
-- ✨ **新增**：Level 3 Judge 独立审查模块（反方攻击 + 真实反例 + 翻转条件）
-- ✨ **新增**：自我学习系统，滑动窗口追踪最近 10 次交互偏好
-- ✨ **新增**：12 个回归测试用例 + 5 维质量评分 Rubric
-- 📝 **架构重构**：从单体文件拆分为 Agent + 6 个独立 Skill 模块
+
+- 从单体 prompt 重构为 Agent + 模块化能力文件
+- 新增意图识别、场景模板、上下文补全、压力策略、Judge 审查和回归用例
 
 ---
 
-## 📄 License
+## License
 
 MIT —— 随便用，随便改。
 
 ---
 
-**⭐ 如果你受够了 AI 给你灌水，给 SharpInput 一个 Star。**
-
-**🌟 如果你想让每次 API 调用都值回票价，现在就去试试。**
+**如果你受够了 AI 给你灌水，先别急着换模型，先把问题问锋利。**

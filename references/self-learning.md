@@ -5,8 +5,22 @@
 After each interaction, analyze the user's choices and update preference data.
 On next invocation, read preferences to personalize the flow.
 
-**Storage**: `references/user-preferences.json` (JSON format, schema-defined, NOT workspace memory)
-**Migration note**: If `references/user-preferences.md` exists with data, one-time migrate to JSON on first read, then delete the .md file.
+**Storage**: user-local runtime state, not the published skill package.
+
+Recommended locations:
+
+1. Hermes profile data file: `$HERMES_HOME/data/sharpinput/user-preferences.json`
+2. If `$HERMES_HOME` is unavailable: the active agent/profile data directory equivalent
+3. If durable file storage is unavailable: skip self-learning silently and run with no preferences
+
+The repository ships only:
+
+- `references/user-preferences.schema.json` — JSON schema
+- `references/user-preferences.example.json` — empty/sanitized example
+
+Never commit a real user's `user-preferences.json`. Runtime preferences are private local state.
+
+**Migration note**: If an old install has `references/user-preferences.md` or `references/user-preferences.json` with data, migrate it once into the user-local runtime state path above, then remove it from the installed skill package.
 
 ---
 
@@ -123,19 +137,21 @@ Only present when `outcome_score` is 1 or 2 and reflective diagnosis was trigger
 | auto_corrections | int | 自动修正成功执行的次数 |
 | persistent_issues | string[] | 连续3次反思未改善的 failure_cause 列表 |
 
-完整 JSON 示例见 `user-preferences.json`。
+完整 JSON 结构示例见 `user-preferences.example.json`；字段约束见 `user-preferences.schema.json`。
 
 ---
 
 ## When to Write — 包含效果追踪（v2.4+）
 
 After Stage 3 Step 2 outputs the final question:
-1. Extract all applicable fields from this session into JSON format
-2. Read `references/user-preferences.json`
-3. Append this session's data to the `history` array (keep last 10 entries only)
-4. Recalculate the `summary` section from the last 10 entries
-5. Update `last_updated` to current date
-6. Write back as valid JSON
+1. Resolve the user-local runtime state file path, preferably `$HERMES_HOME/data/sharpinput/user-preferences.json`
+2. If the file does not exist, initialize it from `references/user-preferences.example.json`
+3. Extract all applicable fields from this session into JSON format
+4. Read the runtime preference file
+5. Append this session's data to the `history` array (keep last 10 entries only)
+6. Recalculate the `summary` section from the last 10 entries
+7. Update `last_updated` to current date
+8. Write back as valid JSON to the runtime state path only; never write private preferences into `references/`
 
 ### Post-Interaction 效果追踪（可选扩展）
 
@@ -214,9 +230,10 @@ Step 4: **更新 summary** — 在 `reflection_stats` 中累计统计
 ## When to Read
 
 After Gate, before Intent Recognition (the Memory Load step):
-1. Read `references/user-preferences.json`
-2. If `summary` exists, apply preferences silently (see Memory Load in SKILL.md)
-3. If file doesn't exist or is empty, skip
+1. Resolve the runtime preference file path, preferably `$HERMES_HOME/data/sharpinput/user-preferences.json`
+2. If it exists, read it and apply `summary` preferences silently
+3. If it does not exist, skip self-learning with no warning
+4. If the old installed package contains `references/user-preferences.json`, treat it as legacy data and migrate it once to the runtime path
 
 ### 读取规则
 
@@ -287,6 +304,8 @@ After Gate, before Intent Recognition (the Memory Load step):
 ## Preference Reset
 
 If user says "重置偏好" / "reset preferences":
+- Resolve the runtime preference file path, preferably `$HERMES_HOME/data/sharpinput/user-preferences.json`
 - Clear the `history` array
-- Clear `summary` to defaults
+- Clear `summary` to defaults from `references/user-preferences.example.json`
+- Write the reset JSON to the runtime path only
 - Confirm: "偏好已重置。" / "Preferences reset."

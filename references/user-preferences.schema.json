@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SharpInput user preferences",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "last_updated", "history", "summary"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "last_updated": {"type": ["string", "null"]},
+    "history": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["timestamp", "level_used", "level_assigned", "intent_primary", "language"],
+        "properties": {
+          "timestamp": {"type": "string"},
+          "level_used": {"type": "integer", "minimum": 0, "maximum": 3},
+          "level_assigned": {"type": "integer", "minimum": 0, "maximum": 3},
+          "level_upgraded": {"type": "boolean"},
+          "intent_primary": {"type": "string"},
+          "intent_secondary": {"type": ["string", "null"]},
+          "language": {"type": "string"},
+          "pressure_strategy": {"type": ["string", "null"]},
+          "strategy_skipped": {"type": ["string", "null"]},
+          "angle_selected": {"type": ["string", "null"]},
+          "paths_presented": {"type": "array", "items": {"type": "string"}},
+          "user_choice": {"type": ["string", "null"]},
+          "choice_detail": {"type": ["string", "null"]},
+          "feedback": {"type": ["string", "null"]},
+          "outcome_score": {"type": ["integer", "null"], "minimum": 1, "maximum": 5},
+          "outcome_note": {"type": ["string", "null"]},
+          "reflection": {"type": ["object", "null"]},
+          "context_role": {"type": ["string", "null"]},
+          "context_tech_stack": {"type": ["string", "null"]},
+          "context_budget": {"type": ["string", "null"]},
+          "context_team_size": {"type": ["integer", "null"]},
+          "context_domain": {"type": ["string", "null"]},
+          "context_constraints": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "level_bias": {"type": "object"},
+        "angle_preference": {"type": "array", "items": {"type": "string"}},
+        "avoided_angles": {"type": "array", "items": {"type": "string"}},
+        "intent_history": {"type": "object"},
+        "intent_priming": {"type": ["object", "null"]},
+        "correction_map": {"type": "object"},
+        "strategy_feedback": {"type": "object"},
+        "context_autofill": {"type": "object"},
+        "outcome_stats": {"type": ["object", "null"]},
+        "reflection_stats": {"type": ["object", "null"]}
+      }
+    }
+  }
+}

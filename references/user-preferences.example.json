@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "last_updated": null,
+  "history": [],
+  "summary": {
+    "level_bias": {
+      "total_sessions": 0,
+      "level_distribution": {"0": 0, "1": 0, "2": 0, "3": 0},
+      "top_level_pct": 0
+    },
+    "angle_preference": [],
+    "avoided_angles": [],
+    "intent_history": {},
+    "intent_priming": {
+      "primary_intent_top3": [],
+      "corrections": {}
+    },
+    "correction_map": {},
+    "strategy_feedback": {},
+    "context_autofill": {},
+    "outcome_stats": null,
+    "reflection_stats": null
+  }
+}

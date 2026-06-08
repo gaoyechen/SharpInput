@@ -1,14 +1,21 @@
 ---
-name: SharpInput
+name: sharpinput
 description: >
   Use when a user asks to optimize, sharpen, clarify, rewrite, pressure-test, or improve an input,
   prompt, question, requirement, plan, idea, or message before sending it to an AI or person.
   Trigger on "帮我优化/润色/理清/改一下/这样问行不行", "怎么问 AI 更好", "optimize this prompt",
   "make this clearer", or any discussion about prompt/question quality. Do not use for directly
   answering the underlying task, coding, data analysis, or file operations.
-version: "3.1"
+version: 3.1.0
+author: gaoyechen
+license: MIT
+platforms: [windows, macos, linux]
 agent_created: true
 allowed-tools: Read, Write, Glob, Bash, AskUserQuestion, Agent
+metadata:
+  hermes:
+    tags: [prompt, prompt-optimization, ai-agent, input-compiler, skill]
+    related_skills: []
 ---
 
 # SharpInput Agent
@@ -29,13 +36,13 @@ Always preserve these invariants:
 
 ## Agent Structure
 
-SharpInput is organized as an agent orchestration layer plus focused capability skills.
+SharpInput is organized as an agent orchestration layer plus focused capability modules.
 
 | Layer | File | Role |
 |------|------|------|
 | Main orchestration | `AGENT.md` | full routing flow and handoff contract |
 | Trigger skill | `SKILL.md` | compact runtime checklist loaded on trigger |
-| Capability skills | `skills/*/SKILL.md` | focused modules for intent, scenario, context, compiling, pressure, judge, rendering |
+| Capability modules | `modules/*.md` | focused modules for intent, scenario, context, compiling, pressure, judge, rendering |
 | References | `references/*.md` | taxonomies, templates, rubrics, and shared data |
 | Regression assets | `examples/`, `tests/` | examples and acceptance cases |
 
@@ -100,15 +107,15 @@ Use capability files as focused reference modules:
 
 | Need | Read |
 |------|------|
-| identify primary/secondary intent | `skills/intent-detection/SKILL.md` |
-| detect concrete scenario | `skills/scenario-detection/SKILL.md` |
-| ask scenario-specific slots | `skills/scenario-slot-elicitation/SKILL.md` |
-| fill generic missing context | `skills/context-completion/SKILL.md` |
-| clarify vague subjective description | `skills/description-clarifier/SKILL.md` |
-| compile final prompt | `skills/prompt-compiler/SKILL.md` |
-| add pressure without over-contrarian behavior | `skills/pressure-strategy/SKILL.md` |
-| review high-risk prompts | `skills/judge-review/SKILL.md` |
-| format user-facing output | `skills/output-renderer/SKILL.md` |
+| identify primary/secondary intent | `modules/intent-detection.md` |
+| detect concrete scenario | `modules/scenario-detection.md` |
+| ask scenario-specific slots | `modules/scenario-slot-elicitation.md` |
+| fill generic missing context | `modules/context-completion.md` |
+| clarify vague subjective description | `modules/description-clarifier.md` |
+| compile final prompt | `modules/prompt-compiler.md` |
+| add pressure without over-contrarian behavior | `modules/pressure-strategy.md` |
+| review high-risk prompts | `modules/judge-review.md` |
+| format user-facing output | `modules/output-renderer.md` |
 
 Do not load every capability file by default. Read only what the route needs.
 
@@ -171,7 +178,7 @@ Every final response must include:
 
 1. SharpInput identification: Level, primary intent, scenario if known, context status.
 2. Brief diagnosis: why the original input would produce a weak answer.
-3. A complete upgraded prompt in a quote block.
+3. A complete upgraded prompt in a quote block or fenced text block.
 4. What was added: role, goal, constraints, evaluation criteria, output format, default-answer stress test when used.
 5. Trade-off note.
 6. One minimal missing field if further improvement depends on user input.
@@ -190,7 +197,11 @@ Never output only critique, rating, or suggestions.
 | `references/judge-rubric.md` | Judge review rubric |
 | `references/handoff-contract.md` | shared data object |
 | `references/interaction-patterns.md` | user-choice prompts and fallbacks |
-| `references/self-learning.md` | preference learning |
+| `references/self-learning.md` | preference learning; runtime state must stay user-local |
+| `references/user-preferences.schema.json` | private preference state schema |
+| `references/user-preferences.example.json` | empty sanitized preference example |
+
+Runtime preference files must not be written into `references/`; use the active Hermes profile data path described in `references/self-learning.md`.
 
 ## Regression
 

@@ -2,11 +2,11 @@
 
 SharpInput Agent is the orchestration layer for the SharpInput skill system.
 
-It decides whether SharpInput should trigger, normalizes input, routes to capability skills, preserves intent fidelity, scores prompt quality, and renders the final upgraded prompt.
+It decides whether SharpInput should trigger, normalizes input, routes to capability modules, preserves intent fidelity, scores prompt quality, and renders the final upgraded prompt.
 
 ## Core Principle
 
-Agent manages flow. Skills manage capabilities.
+Agent manages flow. Modules manage capabilities.
 
 The agent should never become a second monolithic skill. It should route to focused files only when needed.
 
