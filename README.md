@@ -68,8 +68,15 @@ cp -R SharpInput/* "$LOCALAPPDATA/hermes/skills/sharpinput/"
 
 ```text
 /reload-skills
-/skill sharpinput
 ```
+
+装完对 Agent 说：
+
+```text
+帮我优化：我想让 AI 帮我做一件什么事，应该怎么提问？
+```
+
+SharpInput 会自动接管，识别意图、检测场景、补全上下文，输出一个可直接复制的升级版 Prompt。
 
 验证：
 
@@ -159,6 +166,24 @@ Prompt 编译 → 默认答案压力测试 → 质量检查
 
 ---
 
+## 安全边界
+
+**SharpInput 不会做的事：**
+
+- 不会直接回答你的底层任务（只输出升级版 prompt）
+- 不会发送外部网络请求
+- 不会在没有你确认时猜测场景特定事实（预算、受众、平台）
+- 不会把你的偏好写入仓库或 skill 包内部（见 [PRIVACY.md](PRIVACY.md)）
+- Level 3 Judge 审查会呈现多条路径，等你选择
+
+**什么时候 SharpInput 会停下来问你：**
+
+- 你的意图混合了"优化输入"和"直接回答"
+- 关键上下文缺失（预算、受众、约束），用 placeholder 会影响质量
+- 信心低于 0.65 时，会请你确认意图
+
+---
+
 ## 项目结构
 
 ```text
@@ -178,6 +203,7 @@ SharpInput/
 ├── references/                      # taxonomy、rubric、模板和隐私安全的示例状态文件
 ├── examples/                        # 示例输入和预期路线
 ├── tests/                           # 回归用例和质量评分标准
+├── scripts/                         # demo 录制脚本和验证工具
 ├── INSTALL.md                       # 安装、升级、卸载和排障
 └── PRIVACY.md                       # 本地状态和隐私说明
 ```
@@ -240,6 +266,15 @@ tests/quality-rubric.md
 
 - 从单体 prompt 重构为 Agent + 模块化能力文件
 - 新增意图识别、场景模板、上下文补全、压力策略、Judge 审查和回归用例
+
+---
+
+## 致谢
+
+- **Prompt engineering best practices**：受 Anthropic、OpenAI 的 prompt 工程指南启发，但 SharpInput 的核心创新是"自动编译"而非"手动优化"
+- **DSPy / PromptWizard**：自动 prompt 优化的研究方向提供了理论基础；SharpInput 选择了 agent-native 形态而非框架形态
+- **prompt-optimizer**（30K⭐）：验证了"prompt 优化"品类的真实需求
+- **Hermes Agent**：提供了 skill 系统、触发路由和 handoff 机制的运行时基础
 
 ---
 

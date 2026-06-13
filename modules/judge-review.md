@@ -1,6 +1,6 @@
 ---
-name: sharpinput-judge-review
-description: Use when SharpInput is in Level 3, high-risk, multi-path, or user-requested review mode and needs an independent quality and fidelity check.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Judge Review

@@ -1,6 +1,6 @@
 ---
-name: sharpinput-scenario-slot-elicitation
-description: Use when SharpInput detected a known scenario and needs to collect the few scenario-specific variables that most affect prompt quality.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Scenario Slot Elicitation

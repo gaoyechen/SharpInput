@@ -1,6 +1,6 @@
 ---
-name: sharpinput-prompt-compiler
-description: Use when SharpInput has enough intent and context to compile the user's weak input into a stronger copy-ready prompt.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Prompt Compiler

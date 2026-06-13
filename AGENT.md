@@ -10,31 +10,9 @@ Agent manages flow. Modules manage capabilities.
 
 The agent should never become a second monolithic skill. It should route to focused files only when needed.
 
-## Flow
-
-```text
-user weak input
--> trigger decision
--> input normalization
--> gate level
--> intent detection
--> scenario detection
--> scenario slot elicitation or context completion
--> route selection
--> prompt compilation
--> pressure strategy when needed
--> intent fidelity check
--> quality scoring
--> judge review when needed
--> output rendering
--> feedback/self-learning
-```
-
 ## Trigger Decision
 
-Trigger when the user asks to improve the input, prompt, question, requirement, idea, plan, or message.
-
-Do not trigger when the user asks for direct answering, coding, data analysis, file edits, or factual lookup.
+Trigger rules and negative triggers are defined in [`SKILL.md` Trigger Check](SKILL.md#trigger-check).
 
 Mixed intent rule:
 
@@ -74,9 +52,11 @@ Example:
 | Pressure Prompt | needs stance/trade-off/comparison | intent-detection -> context-completion -> prompt-compiler -> pressure-strategy -> output-renderer |
 | Judge Mode | high risk, Level 3, multi-path, review requested | intent-detection -> scenario-detection -> context-completion -> prompt-compiler -> pressure-strategy -> judge-review -> output-renderer |
 
+Gate Level definitions and Capability Routing index are in [`SKILL.md`](SKILL.md).
+
 ## Handoff Discipline
 
-Every module reads and updates the handoff object in `references/handoff-contract.md`.
+Every module reads and updates the handoff object defined in [`references/handoff-contract.md`](references/handoff-contract.md).
 
 Never pass only prose between modules when structured fields exist. Natural language handoff loses context and causes rule drift.
 

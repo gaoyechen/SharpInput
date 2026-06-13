@@ -1,6 +1,6 @@
 ---
-name: sharpinput-intent-detection
-description: Use when SharpInput needs to identify the user's primary and secondary intent before optimizing a prompt or question.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Intent Detection

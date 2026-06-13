@@ -1,6 +1,6 @@
 ---
-name: sharpinput-scenario-detection
-description: Use when SharpInput needs to recognize the concrete user scenario behind an input, such as computer purchase, AI subscription choice, PRD generation, or UI review.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Scenario Detection

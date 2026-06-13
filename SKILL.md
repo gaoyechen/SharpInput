@@ -50,21 +50,10 @@ Read `AGENT.md` when the task is non-trivial, ambiguous, scenario-heavy, or Leve
 
 ## Runtime Flow
 
-```text
-Trigger check
--> Input normalization
--> Gate Level 0-3
--> Intent detection
--> Scenario detection
--> Scenario slot elicitation or general context completion
--> Route selection
--> Prompt compilation
--> Intent fidelity check
--> Prompt quality scoring
--> Optional Judge review
--> Output rendering
--> Feedback/self-learning
-```
+完整编排流程（输入标准化、路由选择、模块调度、反馈循环）见 [`AGENT.md`](AGENT.md)。
+
+SKILL.md 负责：触发判断、Gate Level、能力模块索引、质量门、输出要求。
+AGENT.md 负责：完整 routing flow、route map、handoff object、feedback loop。
 
 ## Trigger Check
 
@@ -121,44 +110,11 @@ Do not load every capability file by default. Read only what the route needs.
 
 ## Shared Handoff Object
 
-Pass information between modules using this shape:
-
-```json
-{
-  "raw_input": "",
-  "target_input": "",
-  "user_instruction": "",
-  "task_mode": "prompt_optimization",
-  "level": 1,
-  "primary_intent": "",
-  "secondary_intent": "",
-  "intent_confidence": 0.0,
-  "scenario": "",
-  "slot_template": "",
-  "known_context": {},
-  "missing_fields": [],
-  "slot_questions": [],
-  "clarified_dimensions": [],
-  "pressure_requirements": [],
-  "compiled_prompt_draft": "",
-  "fidelity_check": {},
-  "quality_score": {},
-  "judge_result": {},
-  "final_prompt": "",
-  "risk_notes": []
-}
-```
-
-The handoff contract is defined in `references/handoff-contract.md`.
+模块间通过结构化 JSON 传递数据，不使用自然语言 handoff。完整字段定义见 [`references/handoff-contract.md`](references/handoff-contract.md)。
 
 ## Route Selection
 
-| Route | Use When | Modules |
-|------|----------|---------|
-| Quick Rewrite | short/simple prompt improvement | intent -> prompt compiler -> renderer |
-| Clarify First | vague or subjective input | intent -> scenario -> slot/context -> description clarifier -> compiler -> renderer |
-| Pressure Prompt | decision/comparison/optimization/analysis | intent -> context -> compiler -> pressure -> fidelity -> scoring -> renderer |
-| Judge Mode | Level 3/high-risk/multi-path/review requested | intent -> scenario -> context -> compiler -> pressure -> judge -> rewrite if needed -> renderer |
+四条路由（Quick Rewrite / Clarify First / Pressure Prompt / Judge Mode）的完整模块调度链见 [`AGENT.md` Route Map](AGENT.md#route-map)。
 
 ## Quality Gates
 
@@ -171,6 +127,26 @@ Before final output:
 5. **Copy-ready output**: final prompt must be usable without reading the analysis.
 
 If quality is 6.5-7.4, rewrite once. If below 6.5, return to context completion or scenario slot elicitation.
+
+## Common Failure Modes
+
+| 失败模式 | 症状 | 应对 |
+|---|---|---|
+| 直接回答底层任务 | 输出了"你应该买XXX"而非升级版prompt | 检查 task_mode 是否为 prompt_optimization；回归用例 R9 |
+| 泛泛追问 | 问了"背景是什么"但没问关键槽位 | 用 scenario-slot-elicitation 的 Ask first 问法 |
+| 过度施压 | 简单问题被强行加"反共识"框架 | 检查 overpressure_risk；Level 0/1 不用 pressure |
+| 猜测场景事实 | 假设了用户的预算/用途/受众 | 用 placeholder `[预算范围]` 而非猜测 |
+| 输出格式缺失 | 生成类prompt没有指定输出格式 | prompt-compiler 的 Must Include 检查 |
+| Level 膨胀 | 简单改写被升级为 Level 3 多路径 | 短输入不含焦虑/隐藏决策/价值冲突时保持 Level 0/1 |
+
+## Safety Boundaries
+
+- 不会直接回答用户的底层任务（只输出升级版 prompt）
+- 不会把用户偏好写入仓库或 skill 包内部（见 [`PRIVACY.md`](PRIVACY.md)）
+- 不会发送外部网络请求
+- 不会在没有用户确认时猜测场景特定事实（预算、受众、平台）
+- Level 3 Judge 审查会呈现多条路径，等用户选择
+- 不会将 runtime preference 写入 `references/` 目录
 
 ## Output Requirements
 

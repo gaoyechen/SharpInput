@@ -1,6 +1,6 @@
 ---
-name: sharpinput-description-clarifier
-description: Use when SharpInput receives vague, subjective, emotional, or imprecise input that needs to be converted into analyzable dimensions before prompt compilation.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Description Clarifier

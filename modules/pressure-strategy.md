@@ -1,6 +1,6 @@
 ---
-name: sharpinput-pressure-strategy
-description: Use when SharpInput needs to strengthen a compiled prompt with stance, trade-off, default-answer stress testing, or executable next steps.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Pressure Strategy

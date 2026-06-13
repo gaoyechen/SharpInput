@@ -1,6 +1,6 @@
 ---
-name: sharpinput-output-renderer
-description: Use when SharpInput needs to render the final user-facing response after prompt compilation, pressure, scoring, or Judge review.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Output Renderer

@@ -1,6 +1,6 @@
 ---
-name: sharpinput-context-completion
-description: Use when SharpInput needs generic context completion after intent detection, especially when no scenario template applies.
+# Internal module — loaded by SharpInput AGENT.md routing, not a standalone skill.
+description:
 ---
 
 # Context Completion
