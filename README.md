@@ -1,4 +1,4 @@
-# ⚡ SharpInput v3.1
+# ⚡ SharpInput v3.2
 
 <p align="center">
   <strong>AI Input Compiler — 把模糊输入编译成可直接复制的高质量 Prompt</strong>
@@ -10,7 +10,7 @@
   <a href="https://github.com/gaoyechen/SharpInput/issues"><img src="https://img.shields.io/github/issues/gaoyechen/SharpInput" alt="Issues"></a>
   <a href="https://github.com/gaoyechen/SharpInput/blob/main/LICENSE"><img src="https://img.shields.io/github/license/gaoyechen/SharpInput" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/platform-Hermes%20Agent-blueviolet" alt="Platform">
-  <img src="https://img.shields.io/badge/version-v3.1-brightgreen" alt="Version">
+  <img src="https://img.shields.io/badge/version-v3.2-brightgreen" alt="Version">
 </p>
 
 > 你花了几百块订阅 AI，却还在用搜索引擎级别的提问方式。
@@ -253,6 +253,19 @@ tests/quality-rubric.md
 ---
 
 ## Changelog
+
+### v3.2
+
+- Darwin 9 维评估优化（6.73 → 7.56，+0.83）
+  - dim4 检查点：插入 3 个显性标记（混合意图/Level 3/质量门）
+  - dim8 路由一致性：Level 2 上下文不足不再降级为 Clarify First
+  - dim9 反例：新增 DON'T 节（10 条反例覆盖输出风格/格式/路由）
+- Luban 鲁班打磨：结构清理 + showcase 升级
+  - SKILL.md/AGENT.md 重叠率从 ~40% 降至 ~5%
+  - modules/*.md frontmatter 修复（防止被识别为独立 skill）
+  - README 增加安全边界、致谢、装完第一句话
+  - 新增 scripts/ 目录（demo 录制脚本 + vhs tape）
+- 新增 test-prompts.json（3 个典型测试场景）
 
 ### v3.1
 

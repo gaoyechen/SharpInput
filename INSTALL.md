@@ -2,7 +2,7 @@
 
 SharpInput is distributed as a Hermes Agent skill package.
 
-Canonical skill name from v3.1 onward:
+Canonical skill name from v3.2 onward:
 
 ```text
 sharpinput
@@ -70,7 +70,7 @@ hermes skills list | grep -i sharpinput
 
 Expected: one main skill named `sharpinput`.
 
-A healthy v3.1 install should **not** show internal modules as separate skills, such as:
+A healthy v3.2 install should **not** show internal modules as separate skills, such as:
 
 ```text
 sharpinput-context-completion
@@ -159,7 +159,7 @@ Check:
 
 ### Too many SharpInput entries appear
 
-If `hermes skills list` shows internal modules as standalone skills, remove the old install and reinstall v3.1+.
+If `hermes skills list` shows internal modules as standalone skills, remove the old install and reinstall v3.2+.
 
 A correct installed package should have this internal layout:
 

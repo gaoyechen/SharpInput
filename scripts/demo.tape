@@ -10,7 +10,7 @@ Set Height 600
 Set Theme "Dracula"
 Set Padding 24
 
-Type@100 "echo '=== SharpInput v3.1 Demo ==='"
+Type@100 "echo '=== SharpInput v3.2 Demo ==='"
 Enter
 Sleep 1s
 
